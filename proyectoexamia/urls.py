@@ -16,7 +16,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import *
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+
+router = DefaultRouter()
+router.register(r'usuarios', UsuarioViewSet)
+router.register(r'alumnos', AlumnoViewSet)
+router.register(r'profesores', ProfesorViewSet)
+router.register(r'cursos', CursoViewSet)
+router.register(r'inscripciones', InscripcionViewSet)
+router.register(r'profesor_curso', ProfesorCursoViewSet)
+router.register(r'examenes', ExamenViewSet)
+router.register(r'preguntas', PreguntaViewSet)
+router.register(r'respuestas', RespuestaViewSet)
+router.register(r'examen_alumno', ExamenAlumnoViewSet)
+router.register(r'respuesta_alumno', RespuestaAlumnoViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include(router.urls)),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+
