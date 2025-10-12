@@ -1,5 +1,28 @@
 from rest_framework import serializers
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import *
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(username=data['username'], password=data['password'])
+        if not user:
+            raise serializers.ValidationError("Credenciales inválidas")
+
+        # Generar token
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            'token': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'nombre': user.get_full_name() or user.username,
+                'rol': user.rol
+            }
+        }
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:

@@ -8,12 +8,14 @@ class Usuario(AbstractUser):
     )
     rol = models.CharField(max_length=20, choices=ROLES)
 
+    def __str__(self):
+        return f"{self.username} ({self.rol})"
+
 
 class Alumno(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    contraseña = models.CharField(max_length=128)
 
     def __str__(self):
         return self.nombre
@@ -23,7 +25,7 @@ class Profesor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    contraseña = models.CharField(max_length=128)
+
 
     def __str__(self):
         return self.nombre
