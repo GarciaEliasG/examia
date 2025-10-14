@@ -26,6 +26,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     #Si todo esta en orden
     def create(self, validated_data):
+        # Verifica que no haya usuarios con el mismo username o email
+        if Usuario.objects.filter(username=validated_data['username']).exists():
+            raise serializers.ValidationError({"username": "Este usuario ya existe"})
+        if Usuario.objects.filter(email=validated_data['email']).exists():
+            raise serializers.ValidationError({"email": "Este email ya está registrado"})
+        
         #nos deshacemos de los datos que no usaremos para continuar
         #guardamos en una variable los nombres para usarlos despues
         validated_data.pop('confirm_password')

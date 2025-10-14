@@ -1,10 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-//Creamos un interceptor HTTP que se ejecuta con cada request
-//Agrega el TOKEN de los JWT creados anteriormente en los serializers de los regirstros, y los agregamos en lso headers de todas las request salientes
-//Funciona como middleware entre Angular y el Backend
-//Es decir, Angular hace la request -> La interceptamos aca -> Agregamos el header -> Se envia al back
+//Creamos un interceptor que agrega el header autenticado a lo que corresponda
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Excluir rutas de autenticación del interceptor
+  const authRoutes = ['/api/auth/login/', '/api/auth/register/'];
+  const shouldSkip = authRoutes.some(route => req.url.includes(route));
+  
+  if (shouldSkip) {
+    return next(req);
+  }
+
   const token = localStorage.getItem('token');
   
   if (token) {
