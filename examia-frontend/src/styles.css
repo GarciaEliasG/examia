@@ -1,0 +1,23 @@
+/* Fondo general */
+body {
+  background-color: #F8F4EF;
+}
+.card {
+  background-color: #F3F0EC;
+}
+
+.btn-primary {
+  border-radius: 999px;
+}
+
+/* Ajustes estéticos opcionales */
+.navbar-brand img { border-radius: 8px; }
+.hero-img { display:block; width:100%; height:auto; }
+.login-card { background: #fff; border: 0; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+.login-card .input-group-text { background: #fff; }
+.btn-primary { border-radius: 999px; padding: .75rem 1.25rem; }
+
+body { background-color: #F8F4EF; }
+aside { position: sticky; top: 0; }
+.table th, .table td { vertical-align: middle; }
+.card { border-radius: 1rem; }

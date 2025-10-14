@@ -1,0 +1,43 @@
+/* Centrar todo el encabezado */
+.header-register {
+  text-align: center;
+  margin-top: -40px; /* Subí o bajá el bloque completo */
+}
+
+/* Ajuste fino del logo */
+.logo-register {
+  display: block;
+  margin: 0 auto 8px auto; /* centra horizontalmente */
+  transform: translateY(5px); /* súbelo un poco */
+}
+
+/* Ajustes visuales opcionales */
+h3.fw-bold {
+  color: #1E3A5F; /* azul más elegante */
+}
+
+.card {
+  margin-top: -40px;
+  border-radius: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+}
+
+.btn-group .btn {
+  min-width: 120px;
+  border-radius: 25px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-group .btn:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.btn-check:checked + .btn {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}

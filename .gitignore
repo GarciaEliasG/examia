@@ -1,0 +1,51 @@
+# --------------------
+# Backend - Python / Django
+# --------------------
+examia-backend/venv/
+examia-backend/__pycache__/
+examia-backend/*.sqlite3
+examia-backend/*.pyc
+examia-backend/*.log
+
+# --------------------
+# Frontend - Node / React / Angular
+# --------------------
+examia-frontend/dist/
+examia-frontend/tmp/
+examia-frontend/out-tsc/
+examia-frontend/bazel-out/
+examia-frontend/node_modules/
+examia-frontend/npm-debug.log
+examia-frontend/yarn-error.log
+
+# --------------------
+# IDEs and editors
+# --------------------
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# --------------------
+# Miscellaneous / System
+# --------------------
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+.DS_Store
+Thumbs.db
