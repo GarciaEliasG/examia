@@ -1,11 +1,11 @@
 # --------------------
 # Backend - Python / Django
 # --------------------
-examia-backend/venv/
-examia-backend/__pycache__/
-examia-backend/*.sqlite3
-examia-backend/*.pyc
-examia-backend/*.log
+examia_backend/venv/
+examia_backend/__pycache__/
+examia_backend/*.sqlite3
+examia_backend/*.pyc
+examia_backend/*.log
 
 # --------------------
 # Frontend - Node / React / Angular
@@ -17,6 +17,17 @@ examia-frontend/bazel-out/
 examia-frontend/node_modules/
 examia-frontend/npm-debug.log
 examia-frontend/yarn-error.log
+examia-frontend/.angular/cache/
+examia-frontend/**/*.tsbuildinfo
+
+# Angular / Vite cache
+examia-frontend/.vite/
+examia-frontend/.env
+examia-frontend/.env.local
+examia-frontend/.env.*.local
+
+# Optional: si no quieres trackear package-lock.json
+# examia-frontend/package-lock.json
 
 # --------------------
 # IDEs and editors
@@ -40,12 +51,13 @@ examia-frontend/yarn-error.log
 # --------------------
 # Miscellaneous / System
 # --------------------
-/.angular/cache
 .sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
+.connect.lock
+.coverage
+.libpeerconnection.log
 testem.log
 /typings
 .DS_Store
 Thumbs.db
+node_modules/
+*.tsbuildinfo

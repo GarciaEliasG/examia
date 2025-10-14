@@ -1,0 +1,61 @@
+<div class="w-100">
+  <img src="assets/images/estudiantes.png" class="img-fluid w-100" alt="Estudiantes">
+</div>
+
+<!-- Contenido principal (login) -->
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-5">
+          <h3 class="text-center fw-bold mb-4">Iniciar Sesión</h3>
+
+          <div class="d-flex justify-content-center mb-4">
+            <div class="text-center me-4">
+              <img src="assets/images/docente.png" width="70" alt="Docente">
+            </div>
+            <div class="text-center">
+              <img src="assets/images/alumno.png" width="70" alt="Alumno">
+            </div>
+          </div>
+
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3 input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="username"
+                placeholder="Nombre de usuario"
+              />
+            </div>
+
+            <div class="mb-4 input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input
+                type="password"
+                class="form-control"
+                formControlName="password"
+                placeholder="Contraseña"
+              />
+            </div>
+
+            <div *ngIf="errorMessage" class="text-danger mb-3 text-center">
+              {{ errorMessage }}
+            </div>
+            
+            
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-primary" [disabled]="loading">
+                {{ loading ? 'Ingresando...' : 'Ingresar' }}
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

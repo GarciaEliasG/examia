@@ -1,0 +1,112 @@
+html
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-5 shadow-sm border-0 rounded-4">      
+
+        <div class="text-center mb-4 header-register">
+          <img src="assets/images/logo1.png" alt="Logo Examia" width="400" class="mb-2 logo-register">
+          <h3 class="fw-bold">Crear cuenta</h3>
+          <p class="text-muted mb-0">Completá tus datos para crear una cuenta</p>
+        </div>
+
+        <!--Agregamos el biding con registerForm y la accion onSubmit-->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          <!-- Nombre -->
+          <!-- Campos con validacion visual, atrapan errores y el invalid&&registerForm() evita errores prematuros -->
+          <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" formControlName="nombre" placeholder="Nombres">
+            <div *ngIf="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched" class="invalid-feedback d-block">
+              El nombre es requerido
+            </div>
+          </div>
+
+          <!-- Apellido -->
+          <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" formControlName="apellido" placeholder="Apellidos">
+            <div *ngIf="registerForm.get('apellido')?.invalid && registerForm.get('apellido')?.touched" class="invalid-feedback d-block">
+              El apellido es requerido
+            </div>
+          </div>
+          
+          <!-- Usuario -->
+          <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" formControlName="username" placeholder="Nombre de usuario">
+            <div *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="invalid-feedback d-block">
+              El usuario es requerido (mínimo 3 caracteres)
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="email" class="form-control" formControlName="email" placeholder="Correo electrónico">
+            <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="invalid-feedback d-block">
+              Email válido requerido
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" formControlName="password" placeholder="Contraseña">
+            <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="invalid-feedback d-block">
+              Contraseña requerida (mínimo 6 caracteres)
+            </div>
+          </div>
+
+          <!-- Confirmar Contraseña -->
+          <div class="mb-4 input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" formControlName="confirm_password" placeholder="Confirmar contraseña">
+            <div *ngIf="registerForm.errors?.['mismatch'] && registerForm.get('confirm_password')?.touched" class="invalid-feedback d-block">
+              Las contraseñas no coinciden
+            </div>
+          </div>
+
+          <!-- Tipo de cuenta -->
+          <div class="mb-4 text-center">
+            <label class="form-label d-block fw-semibold mb-2">Registrarme como:</label>
+            <div class="btn-group" role="group">
+               <!-- Radio Button que se reconoce para los profesores -->
+              <input type="radio" class="btn-check" id="roleDocente" formControlName="rol" value="profesor">
+              <label class="btn btn-outline-primary" for="roleDocente">
+                <i class="bi bi-person-workspace me-1"></i> Docente
+              </label>
+               <!-- Radio Button que se reconoce para los alumnos -->
+              <input type="radio" class="btn-check" id="roleAlumno" formControlName="rol" value="alumno">
+              <label class="btn btn-outline-primary" for="roleAlumno">
+                <i class="bi bi-mortarboard me-1"></i> Alumno
+              </label>
+            </div>
+            <div *ngIf="registerForm.get('rol')?.invalid && registerForm.get('rol')?.touched" class="invalid-feedback d-block">
+              Debes seleccionar un rol
+            </div>
+          </div>
+
+          <!-- Mensajes de error/éxito -->
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+          <div *ngIf="successMessage" class="alert alert-success">
+            {{ successMessage }}
+          </div>
+
+          <div class="d-grid">
+            <!-- Boton que se desactiva mediante el login, cambia dinamicamente y encia feedback al usuario -->
+            <button type="submit" class="btn btn-primary" [disabled]="loading">
+              {{ loading ? 'Registrando...' : 'Registrarme' }}
+            </button>
+          </div>
+
+          <div class="text-center mt-3">
+            <a routerLink="/" class="text-decoration-none">← Volver al inicio</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,12 +4,14 @@ from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes 
+from rest_framework.permissions import AllowAny  
 
-#Estamos probando un nuevo modelo de conexion con las vistas
-#Es un Endpoint para el registro de nuevos usuarios, valida los datos con el registerSerializer (Para ver si se puede crear el usuario)
-#Retorno con datos del usuario o con error si corresponde
+# Estamos probando un nuevo modelo de conexion con las vistas
+# Es un Endpoint para el registro de nuevos usuarios, valida los datos con el registerSerializer (Para ver si se puede crear el usuario)
+# Retorno con datos del usuario o con error si corresponde
 @api_view(['POST'])
+@permission_classes([AllowAny])  
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
@@ -26,8 +28,9 @@ def register_view(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Modificamos el endpoint del login 
-#Es un poco mas simple y automatica, valida los datos con el serializer del Login y retorna si es validoo error que corresponde
+# Es un poco mas simple y automatica, valida los datos con el serializer del Login y retorna si es validoo error que corresponde
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
@@ -35,10 +38,14 @@ def login_view(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# El resto de tus ViewSets (estas SÍ requieren autenticación)
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
+class AlumnoViewSet(viewsets.ModelViewSet):
+    queryset = Alumno.objects.all()
+    serializer_class = AlumnoSerializer
 class AlumnoViewSet(viewsets.ModelViewSet):
     queryset = Alumno.objects.all()
     serializer_class = AlumnoSerializer
