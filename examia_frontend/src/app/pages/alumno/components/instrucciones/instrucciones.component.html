@@ -1,0 +1,39 @@
+<main class="wrap instructions-wrap">
+  <section class="instructions-card">
+    <div class="header-row">
+      <button class="icon-btn back" aria-label="Volver a evaluaciones" (click)="volver()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+      </button>
+      <h1 class="title">Instrucciones: Parcial 1</h1>
+    </div>
+
+    <div class="content-body">
+      <h2>Detalles de la Evaluación</h2>
+      <ul>
+        <li><strong>Materia:</strong> Matemática I</li>
+        <li><strong>Docente:</strong> Prof. García</li>
+        <li><strong>Tipo de Evaluación:</strong> Parcial (Con cronómetro)</li>
+        <li><strong>Fecha de Vencimiento:</strong> 25/10 19:00 hs.</li>
+      </ul>
+
+      <h2>Reglas Importantes</h2>
+      <ol>
+        <li class="rule-critical"><strong>Duración:</strong> Tendrás un máximo de 45 minutos para completar el examen. El tiempo comienza a correr al hacer clic en "Comenzar Evaluación".</li>
+        <li class="rule-critical"><strong>Intento Único:</strong> Solo tienes un intento para rendir esta evaluación. Una vez finalizada, no podrás volver a entrar.</li>
+        <li><strong>Guardado:</strong> Recuerda usar el botón "Guardar respuesta" después de cada pregunta de desarrollo. Si cierras la pestaña sin guardar, podrías perder tu progreso.</li>
+        <li><strong>Navegación:</strong> Puedes avanzar y retroceder entre preguntas libremente dentro del tiempo asignado.</li>
+        <li class="rule-critical"><strong>Envío Automático:</strong> Si el tiempo se agota, el examen se enviará automáticamente con las respuestas que hayas guardado.</li>
+      </ol>
+      
+      <h2>Requisitos Técnicos</h2>
+      <ul>
+        <li>Asegúrate de tener una conexión a internet estable.</li>
+        <li>Se recomienda usar un navegador actualizado (Chrome, Firefox o Edge).</li>
+      </ul>
+    </div>
+    
+    <div class="action-row">
+      <button class="btn primary full-width" (click)="startEvaluation()">Comenzar Evaluación</button>
+    </div>
+  </section>
+</main>

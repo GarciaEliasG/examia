@@ -1,0 +1,32 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <a class="icon-btn back" aria-label="Volver a Resultado" (click)="volver()">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 7l-5 5 5 5V7z"/>
+      </svg>
+    </a>
+    <h1 class="title">Comentarios: Parcial Integrador</h1>
+  </div>
+
+  <section class="feedback-list">
+    <div *ngFor="let feedback of feedbacks" [class]="getCardClass(feedback.scoreType)">
+      <h3>{{ feedback.question }}</h3>
+      <p class="your-answer"><strong>Tu respuesta:</strong> {{ feedback.userAnswer }}</p>
+      <div class="teacher-comment">
+        <h4>Comentario del Docente<span *ngIf="feedback.scoreType === 'partial'"> (Puntaje Parcial)</span><span *ngIf="feedback.scoreType === 'none'"> (Puntaje 0)</span>:</h4>
+        <p>{{ feedback.teacherComment }}</p>
+      </div>
+    </div>
+  </section>
+</main>

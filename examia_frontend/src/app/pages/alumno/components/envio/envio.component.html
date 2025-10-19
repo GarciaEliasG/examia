@@ -1,0 +1,62 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <button class="icon-btn back" aria-label="Volver" (click)="volver()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </button>
+    <h1 class="title">Mi Envío: Práctico 2</h1>
+  </div>
+  <p class="subtitle">Materia: Programación • Entregado: 10/10 21:34 • Estado: Pendiente de corrección</p>
+
+  <form class="questions-form disabled-view">
+    <section class="question-card">
+      <p class="q-title">Pregunta 1:</p>
+      <p class="q-text">Menciona las tres principales estructuras de control en programación.</p>
+      <div class="q-options text-answer">
+        <label for="q1">Tu respuesta enviada:</label>
+        <input type="text" id="q1" name="q1" value="Secuencia, Selección (If/Else), e Iteración (Bucles)." disabled>
+      </div>
+    </section>
+
+    <section class="question-card">
+      <p class="q-title">Pregunta 2:</p>
+      <p class="q-text">¿Qué lenguaje se utiliza principalmente para dar estructura a la web?</p>
+      <div class="q-options multiple-choice">
+        <label class="option selected-sent">
+          <input type="radio" name="q2" value="a" checked disabled>
+          <span class="option-text">HTML</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="b" disabled>
+          <span class="option-text">CSS</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="c" disabled>
+          <span class="option-text">Python</span>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="d" disabled>
+          <span class="option-text">JavaScript</span>
+        </label>
+      </div>
+    </section>
+    
+    <section class="question-card attachments-card">
+      <p class="q-title">Archivos Adjuntos Enviados:</p>
+      <p class="q-text">El alumno adjuntó los siguientes archivos ({{ attachments.length }}).</p>
+      
+      <div class="attachment-list">
+        <div *ngFor="let attachment of attachments" class="attachment-item">
+          <span>{{ getFileIcon(attachment.type) }}</span>
+          <p>{{ attachment.name }}</p>
+          <a [href]="attachment.downloadUrl" class="btn ghost small">Descargar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</main>

@@ -1,0 +1,163 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<section class="hero">
+  <img src="assets/images/estudiantes.jpg" alt="Estudiantes en clase">
+</section>
+
+<main class="wrap">
+  <div class="header-row">
+    <a routerLink="/alumno/login" class="icon-btn back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </a>
+    <h1 class="title">Mis evaluaciones</h1>
+  </div>
+  <p class="subtitle">Consultá tus exámenes: activos, en curso, entregados y corregidos.</p>
+
+  <section class="filters">
+    <div class="search">
+      <svg viewBox="0 0 24 24"><path d="M21 20l-4.35-4.35A7.5 7.5 0 1 0 9.5 17a7.46 7.46 0 0 0 4.15-1.26L18 20zM4 9.5A5.5 5.5 0 1 1 9.5 15 5.51 5.51 0 0 1 4 9.5z"/></svg>
+      <input 
+        [(ngModel)]="searchTerm" 
+        type="search" 
+        placeholder="Buscar por materia o título…">
+    </div>
+    <select [(ngModel)]="selectedSubject">
+      <option value="">Todas las materias</option>
+      <option>Matemática I</option>
+      <option>Química</option>
+      <option>Programación</option>
+    </select>
+    <select [(ngModel)]="selectedStatus">
+      <option value="">Todos los estados</option>
+      <option>activa</option>
+      <option>en-curso</option>
+      <option>entregada</option>
+      <option>corregida</option>
+    </select>
+    <select [(ngModel)]="selectedSort">
+      <option value="">Ordenar por</option>
+      <option>Más próximas primero</option>
+      <option>Más recientes</option>
+      <option>Mejor calificación</option>
+    </select>
+  </section>
+
+  <section class="evals">
+    <!-- Evaluación Activa -->
+    <article *ngFor="let eval of filteredEvaluations" class="eval-card">
+      <div class="left">
+        <div class="icon">
+          <span *ngIf="eval.status === 'activa'">🗒️</span>
+          <span *ngIf="eval.status === 'en-curso'">⌛</span>
+          <span *ngIf="eval.status === 'entregada'">📤</span>
+          <span *ngIf="eval.status === 'corregida'">✅</span>
+        </div>
+        <div class="info">
+          <h3>{{ eval.title }} <span class="chip chip-materia">{{ eval.subject }}</span></h3>
+          <p class="meta">Docente: <strong>{{ eval.teacher }}</strong> • Duración: {{ eval.duration }}</p>
+          <p class="meta">
+            <span *ngIf="eval.status === 'activa' || eval.status === 'corregida'">
+              {{ eval.date }}
+            </span>
+            <span *ngIf="eval.status === 'en-curso'">
+              {{ eval.date }} • Tiempo restante estimado: {{ eval.progress }}
+            </span>
+            <span *ngIf="eval.status === 'entregada'">
+              {{ eval.date }} • Adjuntos enviados
+            </span>
+            <span *ngIf="eval.status === 'corregida' && eval.grade">
+              Calificación: <strong>{{ eval.grade }}</strong> • Retroalimentación disponible
+            </span>
+          </p>
+          <span [class]="getStatusBadgeClass(eval.status)">
+            {{ eval.status === 'activa' ? 'Activa' : 
+               eval.status === 'en-curso' ? 'En curso' : 
+               eval.status === 'entregada' ? 'Entregada' : 'Corregida' }}
+          </span>
+        </div>
+      </div>
+      <div class="right">
+        <!-- Activa -->
+        <button *ngIf="eval.status === 'activa'" 
+                class="btn primary" 
+                (click)="takeEvaluation(eval)">
+          Rendir ahora
+        </button>
+        <button *ngIf="eval.status === 'activa'" 
+                class="btn ghost" 
+                (click)="viewInstructions(eval)">
+          Ver instrucciones
+        </button>
+
+        <!-- En curso -->
+        <button *ngIf="eval.status === 'en-curso'" 
+                class="btn primary" 
+                (click)="continueEvaluation(eval)">
+          Continuar
+        </button>
+        <button *ngIf="eval.status === 'en-curso'" 
+                class="btn ghost" 
+                (click)="openDiscardModal(eval)">
+          Descartar intento
+        </button>
+
+        <!-- Entregada -->
+        <button *ngIf="eval.status === 'entregada'" 
+                class="btn ghost" 
+                (click)="viewSubmission(eval)">
+          Ver envío
+        </button>
+
+        <!-- Corregida -->
+        <button *ngIf="eval.status === 'corregida'" 
+                class="btn primary" 
+                (click)="viewResult(eval)">
+          Ver resultado
+        </button>
+        <button *ngIf="eval.status === 'corregida' && eval.hasFeedback" 
+                class="btn ghost" 
+                (click)="viewFeedback(eval)">
+          Comentarios
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <div *ngIf="filteredEvaluations.length === 0" class="empty">
+    <p>No encontramos evaluaciones con esos filtros.</p>
+  </div>
+
+  <!-- Modal: Evaluación ya Finalizada -->
+  <div *ngIf="showFinishedModal" class="modal-overlay">
+    <div class="modal-card modal-error">
+      <div class="modal-icon">⚠️</div>
+      <h3>Evaluación ya Finalizada</h3>
+      <p>La evaluación '{{ selectedEvaluation?.title }}' ya ha sido resuelta y finalizada por usted. No es posible un nuevo intento.</p>
+      <div class="modal-actions">
+        <button class="btn primary full-width" (click)="closeModals()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Descartar Intento -->
+  <div *ngIf="showDiscardModal" class="modal-overlay">
+    <div class="modal-card modal-error">
+      <div class="modal-icon">🗑️</div>
+      <h3>Descartar Progreso</h3>
+      <p>¿Está seguro de que desea descartar su intento en '{{ selectedEvaluation?.title }}'? Se perderán todos los datos guardados.</p>
+      <div class="modal-actions">
+        <button class="btn primary" (click)="discardAttempt()">Sí, Descartar</button>
+        <button class="btn ghost" (click)="closeModals()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,119 @@
+:root {
+  --bg:#f3eee8;
+  --surface:#ffffff;
+  --ink:#1e293b;
+  --muted:#6b7280;
+  --primary:#1f6feb;
+  --border:#d9d9d9;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+* { box-sizing:border-box; }
+html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+
+/* barra */
+.topbar{
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+}
+.logo{ height:40px; width:auto; }
+
+/* botones */
+.icon-btn{
+  display:inline-grid;
+  place-items:center;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:transform .12s ease,border-color .12s ease;
+}
+.icon-btn svg{width:22px;height:22px;fill:var(--ink);}
+.icon-btn:hover{transform:translateY(-1px);border-color:#c9c9c9;}
+
+/* imagen principal */
+.hero{width:100%;overflow:hidden;}
+.hero img{width:100%;height:500px;object-fit:cover;border-block:1px solid var(--border);display:block;}
+
+/* contenido */
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 64px;}
+.actions-left{display:flex;justify-content:flex-start;margin:-5px 0 -50px 10px;}
+.icon-btn.back{position:static;}
+.title{text-align:center;font-size:2.5rem;font-weight:800;margin:0 0 20px;}
+
+/* tarjetas */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(260px,1fr));
+  gap:18px;
+  justify-content:center;
+}
+.card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px 20px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  text-decoration:none;
+  color:inherit;
+  box-shadow:var(--shadow);
+  transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+  border-color:#cfd3d9;
+}
+.card-icon{
+  flex:0 0 48px;
+  height:48px;
+  width:48px;
+  display:grid;
+  place-items:center;
+  background:#eef4ff;
+  border-radius:12px;
+  border:1px solid #dbe5ff;
+}
+.card-icon svg{width:24px;height:24px;fill:var(--primary);}
+.card-text h3{margin:0 0 2px;font-size:1.05rem;font-weight:700;}
+.card-text p{margin:0;font-size:.9rem;color:var(--muted);}
+
+/* dash card */
+.dash-card{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  text-decoration:none;
+  color:#0f172a;
+}
+.dash-card:hover{background:#f8fafc;}
+.dash-icon{
+  width:50px;
+  height:50px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#eef4ff;
+  border:1px solid #dbe5ff;
+  font-size:22px;
+}
+
+/* responsive */
+@media (max-width:720px){
+  .hero img{height:180px;}
+  .cards{grid-template-columns:1fr;}
+}

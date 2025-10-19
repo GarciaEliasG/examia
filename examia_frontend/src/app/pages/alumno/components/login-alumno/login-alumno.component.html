@@ -1,0 +1,44 @@
+<!-- Barra superior -->
+<header class="topbar" style="position:relative">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <div class="top-actions">
+    <a routerLink="/alumno/materias" class="btn-ghost">Ya tengo código</a>
+  </div>
+</header>
+
+<!-- Banner -->
+<section class="hero">
+  <img src="assets/images/estudiantes.jpg" alt="Estudiantes en clase">
+</section>
+
+<!-- Contenido -->
+<main class="wrap">
+  <section class="ingreso-wrap">
+    <h1 class="ingreso-title">Ingresá el código<br>del profesor</h1>
+    <p class="ingreso-sub">Con este código te conectamos a tu curso.</p>
+
+    <form (ngSubmit)="onSubmit($event)" class="form-field">
+      <input 
+        [(ngModel)]="codigo"
+        (input)="normalizeCode()"
+        name="codigo"
+        class="code-input" 
+        type="text" 
+        placeholder="Ej: MAT123"
+        autocomplete="one-time-code" 
+        maxlength="10" 
+        required>
+      
+      <button 
+        class="btn-primary" 
+        type="submit" 
+        [disabled]="!isCodeValid">
+        Conectar
+      </button>
+      
+      <div class="help">Formato sugerido: 3 letras + 3 números (p. ej., MAT123).</div>
+    </form>
+  </section>
+</main>

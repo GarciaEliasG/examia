@@ -1,0 +1,311 @@
+/* ====== TOKENS ====== */
+:root{
+  --bg:#f3eee8;
+  --surface:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --primary:#1f6feb;
+  --border:#e5e7eb;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{ box-sizing:border-box; }
+html,body{ 
+  margin:0; 
+  background:var(--bg); 
+  color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; 
+}
+
+/* ====== TOPBAR ====== */
+.topbar{ 
+  height:64px; 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  padding:0 16px; 
+}
+.logo{ 
+  height:40px; 
+  width:auto; 
+  display:block;
+}
+
+.icon-btn{ 
+  width:50px; 
+  height:50px; 
+  border-radius:50%; 
+  border:1px solid var(--border); 
+  background:#fff; 
+  display:grid; 
+  place-items:center; 
+  box-shadow:var(--shadow); 
+  cursor:pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.icon-btn:hover{
+  transform: translateY(-1px);
+  border-color: #c9c9c9;
+}
+.icon-btn svg{ 
+  width:22px; 
+  height:22px; 
+  fill:var(--ink); 
+}
+
+/* ====== LAYOUT ====== */
+.wrap{ 
+  max-width:900px; 
+  margin:0 auto; 
+  padding:24px 16px 80px; 
+}
+
+/* ====== HEADER CON BOTÓN VOLVER ====== */
+.header-row{ 
+  position:relative; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  margin-bottom:24px; 
+}
+.header-row .back{ 
+  position:absolute; 
+  left:0; 
+}
+.title{ 
+  font-size:2rem; 
+  font-weight:800; 
+  margin:0; 
+  text-align:center; 
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--muted);
+  margin: 0 0 32px 0;
+}
+
+/* ====== FORMULARIO ====== */
+.questions-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.q-title {
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.q-text {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ====== OPCIONES ====== */
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.text-answer label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.text-answer input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.multiple-choice .option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
+
+.option.selected-sent {
+  background: #e8f4fd;
+  border-color: var(--primary);
+}
+
+.option input[type="radio"] {
+  cursor: not-allowed;
+}
+
+.option-text {
+  font-weight: 500;
+}
+
+/* ====== Estilos de Mi Envío (Vista de solo lectura) ====== */
+
+/* Inhabilita la interacción con el formulario */
+.questions-form.disabled-view{
+  pointer-events:none; /* Evita cualquier clic en los elementos internos */
+}
+
+/* Estilo para las respuestas de texto (input) enviadas */
+.questions-form.disabled-view .q-options.text-answer input[type="text"]{
+  background:#f9f9f9; /* Fondo gris para indicar que está inactivo */
+  color:#333;
+  border-color:#ddd;
+}
+
+/* Estilo para la opción de Multiple Choice que el alumno seleccionó */
+.questions-form.disabled-view .option.selected-sent{
+  /* Resalta la respuesta elegida */
+  background:#eaf2ff;
+  border-color:var(--primary);
+  box-shadow:0 0 0 1px var(--primary);
+}
+
+/* Eliminar el hover de las opciones */
+.questions-form.disabled-view .option:hover{
+  background:#f8fafc; /* Vuelve al color base */
+  border-color:var(--border);
+  cursor:default;
+}
+
+/* ====== Adjuntos Enviados ====== */
+.attachments-card{
+  /* Puedes darle un color diferente si quieres destacarlo */
+  border-left:4px solid #1a7f37;
+}
+
+.attachment-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+
+.attachment-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid #eee;
+  border-radius:8px;
+  background:#fff;
+}
+
+.attachment-item span{
+  font-size:1.2rem;
+  flex-shrink:0;
+}
+
+.attachment-item p{
+  margin:0;
+  font-weight:600;
+  flex-grow:1;
+  color:#475569;
+}
+
+/* ====== BOTONES ====== */
+.btn{ 
+  border:1px solid var(--border); 
+  border-radius:999px; 
+  height:40px; 
+  padding:0 16px; 
+  font-weight:700; 
+  cursor:pointer; 
+  text-decoration:none; 
+  display:inline-grid; 
+  place-items:center; 
+  background:#fff; 
+  color:var(--ink);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+.btn.ghost{ 
+  background:#fff; 
+}
+.btn.primary{ 
+  background:var(--primary); 
+  color:#fff; 
+  border-color:#1b5fd1; 
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn.primary:hover {
+  background: #1a65d5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+}
+.btn.full-width{
+  width: 100%;
+  display: block;
+  text-align: center;
+}
+
+.btn.ghost.small {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+}
+
+/* ====== BOTÓN VOLVER ====== */
+.header-row .back {
+  position: absolute;
+  left: 0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .header-row{
+    flex-direction: column;
+    gap: 12px;
+  }
+  .header-row .back{
+    position: static;
+    align-self: flex-start;
+  }
+  .title{
+    font-size: 1.6rem;
+  }
+  
+  .attachment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .attachment-item .btn {
+    align-self: stretch;
+    text-align: center;
+  }
+  
+  .question-card {
+    padding: 18px 16px;
+  }
+}

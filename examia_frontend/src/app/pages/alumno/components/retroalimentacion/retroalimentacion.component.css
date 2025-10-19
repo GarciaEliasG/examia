@@ -1,0 +1,182 @@
+/* ====== TOKENS ====== */
+:root{
+  --bg:#f3eee8;
+  --surface:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --primary:#1f6feb;
+  --border:#e5e7eb;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{ box-sizing:border-box; }
+html,body{ 
+  margin:0; 
+  background:var(--bg); 
+  color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; 
+}
+
+/* ====== TOPBAR ====== */
+.topbar{ 
+  height:64px; 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  padding:0 16px; 
+}
+.logo{ 
+  height:40px; 
+  width:auto; 
+  display:block;
+}
+
+.icon-btn{ 
+  width:50px; 
+  height:50px; 
+  border-radius:50%; 
+  border:1px solid var(--border); 
+  background:#fff; 
+  display:grid; 
+  place-items:center; 
+  box-shadow:var(--shadow); 
+  cursor:pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.icon-btn:hover{
+  transform: translateY(-1px);
+  border-color: #c9c9c9;
+}
+.icon-btn svg{ 
+  width:22px; 
+  height:22px; 
+  fill:var(--ink); 
+}
+
+/* ====== LAYOUT ====== */
+.wrap{ 
+  max-width:900px; 
+  margin:0 auto; 
+  padding:24px 16px 80px; 
+}
+
+/* ====== HEADER CON BOTÓN VOLVER ====== */
+.header-row{ 
+  position:relative; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  margin-bottom:24px; 
+}
+.header-row .back{ 
+  position:absolute; 
+  left:0; 
+}
+.title{ 
+  font-size:2rem; 
+  font-weight:800; 
+  margin:0; 
+  text-align:center; 
+}
+
+/* ====== LISTA DE RETROALIMENTACIÓN ====== */
+.feedback-list{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.feedback-card{
+  padding:24px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+  transition: transform 0.2s ease;
+}
+
+.feedback-card:hover{
+  transform: translateY(-2px);
+}
+
+.feedback-card h3{
+  margin-top:0;
+  font-size:1.3rem;
+  border-bottom:1px solid var(--border);
+  padding-bottom:8px;
+  margin-bottom:12px;
+  color: var(--ink);
+}
+
+.your-answer{
+  font-size:1rem;
+  color:var(--ink);
+  margin-bottom:16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid var(--muted);
+}
+
+.teacher-comment{
+  padding:16px;
+  border-left:4px solid var(--primary);
+  background:#f6f9ff;
+  border-radius:8px;
+}
+
+.teacher-comment h4{
+  color:var(--primary);
+  margin-top:0;
+  margin-bottom:8px;
+  font-size:1.05rem;
+}
+
+.teacher-comment p{
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Estilos para diferentes tipos de puntaje */
+.feedback-card.partial-score .teacher-comment{
+  border-left-color: #ff9800;
+  background: #fff7e6;
+}
+
+.feedback-card.partial-score .teacher-comment h4{
+  color: #ff9800;
+}
+
+.feedback-card.no-score .teacher-comment{
+  border-left-color: #cc3333;
+  background: #ffe6e6;
+}
+
+.feedback-card.no-score .teacher-comment h4{
+  color: #cc3333;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  .header-row{
+    flex-direction: column;
+    gap: 12px;
+  }
+  .header-row .back{
+    position: static;
+    align-self: flex-start;
+  }
+  .title{
+    font-size: 1.6rem;
+  }
+  
+  .feedback-card{
+    padding: 16px;
+  }
+  
+  .feedback-card h3{
+    font-size: 1.1rem;
+  }
+}

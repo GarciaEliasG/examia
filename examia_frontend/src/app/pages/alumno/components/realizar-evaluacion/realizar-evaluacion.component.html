@@ -1,0 +1,117 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <a routerLink="/alumno/evaluaciones" class="icon-btn back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </a>
+    <h1 class="title">Evaluación de Biografía</h1>
+  </div>
+  <p class="subtitle">Docente: Prof. García • Límite: 19:15 • Tiempo restante: {{ formatTime(timeLeft) }}</p>
+
+  <form class="questions-form" (ngSubmit)="submitEvaluation()">
+    <section *ngFor="let question of questions" class="question-card">
+      <p class="q-title">{{ question.title }}</p>
+      <p class="q-text">{{ question.text }}</p>
+
+      <!-- Multiple Choice -->
+      <div *ngIf="question.type === 'multiple-choice'" class="q-options multiple-choice">
+        <label *ngFor="let option of question.options; let i = index" class="option">
+          <input 
+            type="radio" 
+            [name]="'q' + question.id" 
+            [value]="option"
+            [(ngModel)]="question.answer">
+          <span class="option-text">{{ option }}</span>
+        </label>
+      </div>
+
+      <!-- Text Answer -->
+      <div *ngIf="question.type === 'text'" class="q-options text-answer">
+        <label [for]="'q' + question.id">Tu respuesta:</label>
+        <input 
+          type="text" 
+          [id]="'q' + question.id" 
+          [name]="'q' + question.id" 
+          [(ngModel)]="question.answer"
+          placeholder="Desarrollar respuesta..." 
+          required>
+      </div>
+
+      <!-- File Upload -->
+      <div *ngIf="question.type === 'file'" class="q-options file-upload">
+        <button type="button" class="btn primary small">Adjuntar archivo</button>
+        <span class="file-name">{{ question.answer || 'Ningún archivo seleccionado.' }}</span>
+        <div class="file-actions" [style.display]="question.answer ? 'block' : 'none'">
+          <button type="button" class="btn primary small" (click)="saveAnswer(question)">Guardar cambios</button>
+          <button type="button" class="btn ghost small" (click)="question.answer = ''">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="q-actions">
+        <button *ngIf="!question.saved" 
+                type="button" 
+                class="btn ghost small" 
+                (click)="saveAnswer(question)">
+          Guardar respuesta
+        </button> 
+        <button *ngIf="question.saved" 
+                type="button" 
+                class="btn ghost small" 
+                (click)="editAnswer(question)">
+          Editar respuesta
+        </button> 
+      </div>
+    </section>
+
+    <div class="finish-row">
+      <button type="submit" class="btn primary finish-btn">Finalizar Evaluación</button>
+    </div>
+  </form>
+
+  <!-- Modal: Advertencia de preguntas sin responder -->
+  <div *ngIf="showIncompleteWarning" class="modal-overlay">
+    <div class="modal-card modal-error">
+      <div class="modal-icon">⚠️</div>
+      <h3>Todavía hay preguntas sin responder.</h3>
+      <p>¿Desea finalizar con la evaluación? Al confirmar, las preguntas sin respuesta se calificarán con cero puntos.</p>
+      <div class="modal-actions">
+        <button class="btn primary" (click)="confirmSubmission()">Confirmar</button>
+        <button class="btn ghost" (click)="closeModals()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tiempo agotado -->
+  <div *ngIf="showTimeUpModal" class="modal-overlay">
+    <div class="modal-card modal-error">
+      <div class="modal-icon">🛑</div>
+      <h3>Se ha acabado el tiempo</h3>
+      <p>La evaluación ha sido enviada automáticamente al sistema para su corrección. No es posible continuar resolviendo.</p>
+      <div class="modal-actions">
+        <button class="btn primary full-width" (click)="returnToPanel()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Éxito -->
+  <div *ngIf="showSuccessModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-icon" style="color:#1a7f37; font-size:32px;">✅</div>
+      <h3>¡Evaluación Finalizada con Éxito!</h3>
+      <p>Tu evaluación ha sido guardada y enviada al docente para su corrección. Puedes consultar el estado en "Mis evaluaciones".</p>
+      <div class="modal-actions">
+        <button class="btn primary full-width" (click)="returnToPanel()">Volver al Panel</button>
+      </div>
+    </div>
+  </div>
+</main>

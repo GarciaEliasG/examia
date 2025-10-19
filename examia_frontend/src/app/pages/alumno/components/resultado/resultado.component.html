@@ -1,0 +1,44 @@
+<header class="topbar">
+    <div class="brand">
+        <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+    </div>
+</header>
+
+<main class="wrap">
+    <div class="header-row">
+        <button class="icon-btn back" aria-label="Volver" (click)="volver()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 7l-5 5 5 5V7z"/>
+            </svg>
+        </button>
+        <h1 class="title">Resultado: Parcial Integrador</h1>
+    </div>
+  
+  <section class="result-summary">
+    <div class="score-box">
+      <p class="score-label">Calificación Final</p>
+      <span class="score">8.50</span>
+      <p class="status">Aprobado</p>
+    </div>
+    <div class="meta-data">
+      <p><strong>Materia:</strong> Matemática I</p>
+      <p><strong>Docente:</strong> Prof. Elena Gutiérrez</p>
+      <p><strong>Fecha de corrección:</strong> 15/10/2025</p>
+      <p><strong>Tiempo de resolución:</strong> 45 minutos</p>
+      <button class="btn primary full-width" (click)="viewFeedback()">Ver Retroalimentación Detallada</button>
+    </div>
+  </section>
+
+  <section class="question-list">
+    <h2>Detalle por Pregunta</h2>
+
+    <div *ngFor="let question of questions" [class]="'q-result-item ' + question.status">
+      <div class="q-icon">{{ getStatusIcon(question.status) }}</div>
+      <div class="q-content">
+        <p class="q-text">{{ question.text }} <span>({{ question.type }})</span></p>
+        <p class="feedback"><strong>Tu respuesta:</strong> {{ question.userAnswer }}</p>
+      </div>
+      <span class="q-score">{{ question.score }}</span>
+    </div>
+  </section>
+</main>

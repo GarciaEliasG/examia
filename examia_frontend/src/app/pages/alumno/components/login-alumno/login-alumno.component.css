@@ -1,0 +1,164 @@
+/* ====== Tokens ====== */
+:root{
+  --bg:#f3eee8;          /* beige suave */
+  --surface:#ffffff;
+  --ink:#1e293b;         /* gris azulado */
+  --muted:#6b7280;
+  --primary:#1f6feb;     /* azul */
+  --border:#d9d9d9;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{ box-sizing:border-box; }
+html,body{
+  height:100%;
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+
+/* ====== Topbar ====== */
+.topbar{
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  position:relative;
+}
+.brand .logo{ 
+  height:40px; 
+  width:auto; 
+  display:block; 
+}
+
+/* Acción arriba a la derecha ("Ya tengo código") */
+.top-actions{ 
+  position:absolute; 
+  right:16px; 
+  top:12px; 
+}
+.btn-ghost{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid var(--border);
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  text-decoration:none;
+  color:var(--ink);
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.btn-ghost:hover{
+  transform:translateY(-1px);
+  border-color:#c9c9c9;
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
+
+/* ====== Banner ====== */
+.hero{ 
+  width:100%; 
+  overflow:hidden; 
+}
+.hero img{
+  width:100%;
+  height:500px;
+  object-fit:cover;
+  display:block;
+  border-block:1px solid var(--border);
+}
+
+/* ====== Contenido ====== */
+.wrap{ 
+  max-width:980px; 
+  margin:0 auto; 
+  padding:24px 16px 56px; 
+}
+
+.ingreso-wrap{
+  max-width:620px;
+  margin:0 auto;
+  padding:28px 16px 56px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+  background:transparent;
+}
+
+.ingreso-title{
+  text-align:center;
+  font-size:1.6rem;
+  font-weight:800;
+  margin:10px 0 0;
+}
+.ingreso-sub{
+  color:var(--muted);
+  margin:0 0 8px;
+  text-align:center;
+}
+
+.form-field{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+}
+
+.code-input{
+  width:260px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#fff;
+  padding:0 12px;
+  font-size:1rem;
+  text-align:center;
+  letter-spacing:1px;
+  outline:none;
+  transition:border-color .12s ease, box-shadow .12s ease;
+}
+.code-input:focus{
+  border-color:#b6c3ff;
+  box-shadow:0 0 0 3px rgba(31,111,235,.15);
+}
+
+.btn-primary{
+  background:#0ea5a6;
+  color:#fff;
+  border:none;
+  border-radius:999px;
+  padding:12px 22px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+.btn-primary:hover{ 
+  transform:translateY(-1px); 
+  box-shadow:0 10px 28px rgba(0,0,0,.12); 
+}
+.btn-primary:disabled{ 
+  opacity:.6; 
+  cursor:not-allowed; 
+  transform:none;
+  box-shadow:var(--shadow);
+}
+
+.help{ 
+  font-size:.9rem; 
+  color:var(--muted); 
+  text-align:center;
+}
+
+/* ====== Responsive ====== */
+@media (max-width:720px){
+  .hero img{ height:220px; }
+  .ingreso-title{ font-size:1.4rem; }
+  .code-input{ width:220px; }
+}

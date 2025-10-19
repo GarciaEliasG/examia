@@ -1,0 +1,87 @@
+<!-- Barra superior -->
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<!-- Imagen principal -->
+<section class="hero">
+  <img src="assets/images/estudiantes.jpg" alt="Estudiantes en clase">
+</section>
+
+<main class="wrap">
+  <!-- Encabezado con botón volver -->
+  <div class="header-row">
+    <a routerLink="/alumno/panel" class="icon-btn back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 7l-5 5 5 5V7z"/>
+      </svg>
+    </a>
+    <h1 class="title">Elegí tu materia</h1>
+  </div>
+
+  <p class="subtitle">Estas son las materias a las que estás inscripto con el código del profesor.</p>
+
+  <!-- Filtros -->
+  <section class="filters">
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 20l-4.35-4.35A7.5 7.5 0 1 0 9.5 17a7.46 7.46 0 0 0 4.15-1.26L18 20zM4 9.5A5.5 5.5 0 1 1 9.5 15 5.51 5.51 0 0 1 4 9.5z"/>
+      </svg>
+      <input 
+        [(ngModel)]="searchTerm"
+        type="search" 
+        placeholder="Buscar materia o docente…">
+    </div>
+    <select [(ngModel)]="selectedTurn">
+      <option value="">Todos los turnos</option>
+      <option>Mañana</option>
+      <option>Tarde</option>
+      <option>Noche</option>
+    </select>
+    <select [(ngModel)]="selectedStatus">
+      <option value="">Todos los estados</option>
+      <option>Con evaluación activa</option>
+      <option>Sin evaluación</option>
+    </select>
+  </section>
+
+  <!-- Lista de materias -->
+  <section class="courses">
+    <article 
+      *ngFor="let course of filteredCourses" 
+      class="course" 
+      [attr.data-turno]="course.schedule" 
+      [attr.data-estado]="course.status">
+      
+      <div class="left">
+        <div class="icon">
+          <span *ngIf="course.name === 'Matemática I'">📘</span>
+          <span *ngIf="course.name === 'Química'">🧪</span>
+          <span *ngIf="course.name === 'Programación'">💻</span>
+        </div>
+        <div class="info">
+          <h3>{{ course.name }} <span class="code">{{ course.code }}</span></h3>
+          <p class="meta">Docente: <strong>{{ course.teacher }}</strong> • {{ course.classroom }} • {{ course.schedule }}</p>
+          <span class="badge" [class.live]="course.hasActiveEvaluation">
+            {{ course.status }}
+          </span>
+        </div>
+      </div>
+      <div class="right">
+        <button class="btn ghost" (click)="viewEvaluations()">Ver evaluaciones</button>
+        <button class="btn primary" (click)="enterCourse(course.code)">Entrar</button>
+      </div>
+    </article>
+  </section>
+
+  <div *ngIf="filteredCourses.length === 0" class="empty">
+    <p>No se encontraron materias con esos filtros.</p>
+  </div>
+</main>

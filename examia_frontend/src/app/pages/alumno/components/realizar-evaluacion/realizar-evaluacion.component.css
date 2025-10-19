@@ -1,0 +1,192 @@
+/* ====== Estilos de la Evaluación (Realizar Evaluación) ====== */
+
+/* Las preguntas serán tarjetas similares a eval-card */
+.questions-form{
+  max-width:880px;
+  margin:24px auto 80px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.question-card{
+  padding:24px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+
+.q-title{
+  font-size:1rem;
+  font-weight:700;
+  margin:0 0 4px;
+  color:var(--primary); /* Destacar título */
+}
+
+.q-text{
+  font-size:1.1rem;
+  font-weight:600;
+  margin:0 0 16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+
+/* Opciones (similar a Google Forms) */
+.q-options{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+/* Estilo para las opciones Multiple Choice */
+.q-options.multiple-choice .option{
+  flex-basis:calc(50% - 5px); /* Dos columnas */
+  padding:12px 16px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#f8fafc;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.q-options.multiple-choice .option:hover{
+  background:#f0f7ff;
+  border-color:#bbd6ff;
+}
+
+/* Ocultar input nativo y diseñar el radio/checkbox */
+.q-options input[type="radio"],
+.q-options input[type="checkbox"]{
+  /* Oculta el input original, el texto lo usamos como el "casillero" */
+  display:none;
+}
+
+/* Estilo del texto de la opción */
+.option-text{
+  font-size:.95rem;
+  font-weight:500;
+}
+
+/* Estilo cuando la opción está seleccionada */
+.q-options input:checked + .option-text{
+  color:var(--primary);
+  font-weight:700;
+}
+
+.q-options input:checked:focus ~ .option-text{
+  outline:1px dotted var(--primary); /* A11y focus */
+}
+
+/* Estilo de respuesta de texto / desarrollo */
+.q-options.text-answer label{
+  display:block;
+  font-size:.95rem;
+  font-weight:600;
+  margin-bottom:4px;
+}
+
+.q-options.text-answer input[type="text"]{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:1rem;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+
+.q-options.text-answer input[type="text"]:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(31,111,235,.2);
+}
+
+/* Acciones por pregunta */
+.q-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:10px;
+}
+
+/* Botón pequeño (Guardar/Editar/Cancelar) */
+.btn.small{
+  height:30px;
+  padding:0 12px;
+  font-size:.8rem;
+}
+
+/* Botón Finalizar */
+.finish-row{
+  text-align:center;
+  margin-top:24px;
+}
+
+.finish-btn{
+  font-size:1.1rem;
+  padding:14px 30px;
+  height:auto;
+}
+
+/* Responsive para opciones */
+@media (max-width:720px){
+  .q-options.multiple-choice .option{
+    flex-basis:100%; /* Una columna en móviles */
+  }
+}
+
+/* ====== Estilos de Modales (Pop-ups) ====== */
+.modal-overlay{
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,.5);
+  display:none; /* Debe ser manejado por JS, inicialmente oculto */
+  place-items:center;
+  z-index:1000;
+}
+
+.modal-card{
+  background:var(--surface);
+  border-radius:var(--radius);
+  max-width:400px;
+  width:90%;
+  padding:24px;
+  box-shadow:0 12px 32px rgba(0,0,0,.3);
+  text-align:center;
+}
+
+.modal-card h3{
+  font-size:1.4rem;
+  margin:0 0 8px;
+  color:var(--ink);
+}
+
+.modal-card p{
+  margin:0 0 20px;
+  font-size:1rem;
+  color:var(--muted);
+}
+
+.modal-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+}
+
+.btn.primary.full-width{ /* Un botón para ocupar todo el ancho si solo hay uno */
+  flex-grow:1;
+}
+
+/* Modificador para modal de error/advertencia */
+.modal-error h3{
+  color:#cc3333;
+}
+.modal-error .modal-icon{
+  color:#cc3333;
+  font-size:32px;
+  margin-bottom:10px;
+}
