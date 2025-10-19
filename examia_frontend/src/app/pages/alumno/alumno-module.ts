@@ -9,7 +9,7 @@ import {alumnoRoutes } from './alumno-routing-module';
 import { LoginAlumno } from './components/login-alumno/login-alumno.component';
 import { PanelAlumno } from './components/panel-alumno/panel-alumno.component';
 import { Materias } from './components/materias/materias.component';
-import { Evaluaciones } from './components/evaluaciones/evaluaciones.component';
+import { ExamenesAlumno } from './components/evaluaciones/evaluaciones.component';
 import { Instrucciones } from './components/instrucciones/instrucciones.component';
 import { RealizarEvaluacion } from './components/realizar-evaluacion/realizar-evaluacion.component';
 import { Envio } from './components/envio/envio.component';

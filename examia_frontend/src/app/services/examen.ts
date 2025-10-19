@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Examen, ExamenWrapper } from '../models/examen.model';
 
-const baseUrl = 'http://localhost:8000/api/cursos/';
+// URL CORREGIDA: apunta a /api/examenes/ en lugar de /api/cursos/
+const baseUrl = 'http://localhost:8000/api/examenes/';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,8 @@ const baseUrl = 'http://localhost:8000/api/cursos/';
 export class ExamenService {
 
   constructor(private http: HttpClient) { }
+
+  // ====== MÉTODOS CRUD EXISTENTES ======
 
   getAll(): Observable<ExamenWrapper> {
     return this.http.get<ExamenWrapper>(baseUrl);
@@ -30,5 +33,11 @@ export class ExamenService {
 
   delete(id: number): Observable<any> {
     return this.http.delete(`${baseUrl}${id}/`);
+  }
+
+  // ====== MÉTODO NUEVO ======
+
+  getPreguntasByExamen(examenId: number): Observable<any> {
+    return this.http.get(`${baseUrl}${examenId}/preguntas/`);
   }
 }

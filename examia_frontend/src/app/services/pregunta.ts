@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Pregunta, PreguntaWrapper } from '../models/pregunta.model';
 
-const baseUrl = 'http://localhost:8000/api/cursos/';
+// URL CORREGIDA: apunta a /api/preguntas/ en lugar de /api/cursos/
+const baseUrl = 'http://localhost:8000/api/preguntas/';
 
 @Injectable({
   providedIn: 'root'
@@ -30,5 +31,9 @@ export class PreguntaService {
 
   delete(id: number): Observable<any> {
     return this.http.delete(`${baseUrl}${id}/`);
+  }
+
+  getRespuestasByPregunta(preguntaId: number): Observable<any> {
+    return this.http.get(`${baseUrl}${preguntaId}/respuestas/`);
   }
 }

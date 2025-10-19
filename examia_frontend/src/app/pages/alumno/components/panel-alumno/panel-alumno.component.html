@@ -15,38 +15,42 @@
 
 <main class="wrap">
   <div class="actions-left">
-    <a routerLink="./alumno/materias" class="icon-btn back" aria-label="Volver">
+    <button class="icon-btn back" aria-label="Volver" (click)="volver()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M14 7l-5 5 5 5V7z"/>
       </svg>
-    </a>
+    </button>
   </div>
 
   <h1 class="title">Panel del Alumno</h1>
 
   <section class="cards">
-    <a class="card" routerLink="/alumno/evaluaciones">
+    <!-- CORREGIDO: routerLink correcto para Mis Cursos -->
+    <a class="card" routerLink="/alumno/materias">
       <div class="card-icon">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 5h18v2H3V5Zm0 6h12v2H3v-2Zm0 6h18v2H3v-2Z"/>
         </svg>
       </div>
       <div class="card-text">
-        <h3>Mis evaluaciones</h3>
-        <p>Consultá las evaluaciones disponibles y próximas a rendir.</p>
+        <h3>Mis Cursos</h3>
+        <p>Consultá las materias a las que estás inscripto y sus evaluaciones.</p>
       </div>
     </a>
 
-    <a class="card" routerLink="/alumno/resultado/1">
+    <!-- CORREGIDO: routerLink correcto para Evaluaciones -->
+    <a class="card" routerLink="/alumno/evaluaciones">
       <div class="card-icon">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 3a9 9 0 1 1 0 18A9 9 0 0 1 12 3Zm1 5h-2v6h2V8Zm0 8h-2v2h2v-2Z"/>
         </svg>
       </div>
       <div class="card-text">
-        <h3>Resultados y comentarios</h3>
-        <p>Revisá tus calificaciones y observaciones del docente.</p>
+        <h3>Mis Evaluaciones</h3>
+        <p>Consultá tus exámenes: activos, en curso, entregados y corregidos.</p>
       </div>
     </a>
+
+
   </section>
 </main>

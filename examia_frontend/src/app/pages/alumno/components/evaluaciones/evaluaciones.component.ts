@@ -1,143 +1,186 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgModel } from '@angular/forms';
-import { NgFor } from '@angular/common';
-import { NgIf } from '@angular/common';
-
-interface Evaluation {
-  id: number;
-  title: string;
-  subject: string;
-  teacher: string;
-  duration: string;
-  date: string;
-  deadline: string;
-  status: 'activa' | 'en-curso' | 'entregada' | 'corregida';
-  progress?: string;
-  grade?: string;
-  hasFeedback: boolean;
-}
+import { ExamenAlumnoService, ExamenAlumno } from '../../../../services/examenalumno';
+import { AuthService } from '../../../../services/auth';
 
 @Component({
   selector: 'app-evaluaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule,NgFor],
+  imports: [CommonModule, FormsModule,RouterModule],
   templateUrl: './evaluaciones.component.html',
   styleUrls: ['./evaluaciones.component.css']
 })
-export class Evaluaciones {
+export class ExamenesAlumno implements OnInit {
+  // Estado del componente
+  evaluaciones: ExamenAlumno[] = [];
+  filteredEvaluaciones: ExamenAlumno[] = [];
+  isLoading: boolean = true;
+  error: string = '';
+
+  // Filtros
   searchTerm: string = '';
-  selectedSubject: string = '';
-  selectedStatus: string = '';
+  estadoFilter: string = 'todos';
+  materiaFilter: string = 'todos';
   selectedSort: string = '';
 
-  evaluations: Evaluation[] = [
-    {
-      id: 1,
-      title: 'Parcial 1',
-      subject: 'Matemática I',
-      teacher: 'Prof. García',
-      duration: '45 min',
-      date: '25/10 18:00 – 19:00',
-      deadline: '19:15',
-      status: 'activa',
-      hasFeedback: false
-    },
-    {
-      id: 2,
-      title: 'Laboratorio – TP Corto',
-      subject: 'Química',
-      teacher: 'Lic. De Cia',
-      duration: '30 min',
-      date: 'Guardado hace 10 min',
-      deadline: '',
-      status: 'en-curso',
-      progress: '20 min',
-      hasFeedback: false
-    },
-    {
-      id: 3,
-      title: 'Práctico 2',
-      subject: 'Programación',
-      teacher: 'Ing. Badino',
-      duration: '60 min',
-      date: 'Entregado: 10/10 21:34',
-      deadline: '',
-      status: 'entregada',
-      hasFeedback: false
-    },
-    {
-      id: 4,
-      title: 'Parcial Integrador',
-      subject: 'Matemática I',
-      teacher: 'Prof. García',
-      duration: '90 min',
-      date: 'Corregido: 15/10/2025',
-      deadline: '',
-      status: 'corregida',
-      grade: '8.50',
-      hasFeedback: true
-    }
-  ];
-
+  // Modales
   showDiscardModal = false;
   showFinishedModal = false;
-  selectedEvaluation?: Evaluation;
+  selectedEvaluation?: ExamenAlumno;
 
-  constructor(private router: Router) {}
+  // CAMBIO: Cambiar a public para que el template pueda acceder
+  materiaDesdeMaterias: string = '';
 
-  get filteredEvaluations(): Evaluation[] {
-    return this.evaluations.filter(evalu => {
-      const matchesSearch = !this.searchTerm || 
-        evalu.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        evalu.subject.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      const matchesSubject = !this.selectedSubject || evalu.subject === this.selectedSubject;
-      const matchesStatus = !this.selectedStatus || evalu.status === this.selectedStatus;
-      
-      return matchesSearch && matchesSubject && matchesStatus;
+  constructor(
+    private evaluacionesService: ExamenAlumnoService,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    // Verificar si viene filtrado por materia
+    this.route.queryParams.subscribe(params => {
+      this.materiaDesdeMaterias = params['materia'] || '';
+      if (this.materiaDesdeMaterias) {
+        this.materiaFilter = this.materiaDesdeMaterias;
+      }
+      this.cargarEvaluaciones();
     });
   }
 
-  takeEvaluation(evaluation: Evaluation) {
-    if (evaluation.status === 'entregada' || evaluation.status === 'corregida') {
-      this.selectedEvaluation = evaluation;
-      this.showFinishedModal = true;
-    } else {
-      this.router.navigate(['/alumno/realizar-evaluacion', evaluation.id]);
+  // ... el resto de los métodos se mantiene igual ...
+  /**
+   * Carga las evaluaciones del alumno desde el backend
+   */
+  cargarEvaluaciones() {
+    this.isLoading = true;
+    this.evaluacionesService.getEvaluacionesAlumno().subscribe({
+      next: (data) => {
+        this.evaluaciones = data;
+        this.aplicarFiltros();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.error = 'Error al cargar las evaluaciones. Por favor, intenta nuevamente.';
+        this.isLoading = false;
+        console.error('Error cargando evaluaciones:', error);
+        
+        if (error.status === 401) {
+          this.authService.logout();
+        }
+      }
+    });
+  }
+
+  // ====== MÉTODOS DE FILTRADO ======
+
+  aplicarFiltros() {
+    this.filteredEvaluaciones = this.evaluaciones.filter(evalu => {
+      const matchesSearch = !this.searchTerm || 
+        evalu.titulo.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        evalu.materia.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        evalu.docente.toLowerCase().includes(this.searchTerm.toLowerCase());
+      
+      const matchesEstado = this.estadoFilter === 'todos' || evalu.estado === this.estadoFilter;
+      const matchesMateria = this.materiaFilter === 'todos' || evalu.materia === this.materiaFilter;
+      
+      return matchesSearch && matchesEstado && matchesMateria;
+    });
+
+    // Aplicar ordenamiento si está seleccionado
+    if (this.selectedSort) {
+      this.aplicarOrdenamiento();
     }
   }
 
-  viewInstructions(evaluation: Evaluation) {
-    this.router.navigate(['/alumno/instrucciones', evaluation.id]);
+  onSearchChange(term: string) {
+    this.searchTerm = term;
+    this.aplicarFiltros();
   }
 
-  viewSubmission(evaluation: Evaluation) {
-    this.router.navigate(['/alumno/envio', evaluation.id]);
+  onEstadoFilterChange(estado: string) {
+    this.estadoFilter = estado;
+    this.aplicarFiltros();
   }
 
-  viewResult(evaluation: Evaluation) {
-    this.router.navigate(['/alumno/resultado', evaluation.id]);
+  onMateriaFilterChange(materia: string) {
+    this.materiaFilter = materia;
+    this.aplicarFiltros();
   }
 
-  viewFeedback(evaluation: Evaluation) {
-    this.router.navigate(['/alumno/resultado', evaluation.id]);
+  onSortChange(sort: string) {
+    this.selectedSort = sort;
+    this.aplicarFiltros();
   }
 
-  continueEvaluation(evaluation: Evaluation) {
-    this.router.navigate(['/alumno/realizar-evaluacion', evaluation.id]);
+  aplicarOrdenamiento() {
+    switch (this.selectedSort) {
+      case 'Más próximas primero':
+        this.filteredEvaluaciones.sort((a, b) => {
+          const fechaA = a.fecha_limite ? new Date(a.fecha_limite).getTime() : Number.MAX_SAFE_INTEGER;
+          const fechaB = b.fecha_limite ? new Date(b.fecha_limite).getTime() : Number.MAX_SAFE_INTEGER;
+          return fechaA - fechaB;
+        });
+        break;
+      case 'Más recientes':
+        this.filteredEvaluaciones.sort((a, b) => {
+          const fechaA = a.fecha_realizacion ? new Date(a.fecha_realizacion).getTime() : 0;
+          const fechaB = b.fecha_realizacion ? new Date(b.fecha_realizacion).getTime() : 0;
+          return fechaB - fechaA;
+        });
+        break;
+      case 'Mejor calificación':
+        this.filteredEvaluaciones.sort((a, b) => {
+          const califA = a.calificacion || 0;
+          const califB = b.calificacion || 0;
+          return califB - califA;
+        });
+        break;
+    }
   }
 
-  openDiscardModal(evaluation: Evaluation) {
-    this.selectedEvaluation = evaluation;
+  // ====== MÉTODOS DE NAVEGACIÓN ======
+
+  takeEvaluation(evaluacion: ExamenAlumno) {
+    if (evaluacion.estado === 'pendiente' || evaluacion.estado === 'corregido') {
+      this.selectedEvaluation = evaluacion;
+      this.showFinishedModal = true;
+    } else {
+      this.verInstrucciones(evaluacion.id);
+    }
+  }
+
+  verInstrucciones(evaluacionId: number) {
+    this.router.navigate(['/alumno/instrucciones', evaluacionId]);
+  }
+
+  verResultado(evaluacionId: number) {
+    this.router.navigate(['/alumno/resultado', evaluacionId]);
+  }
+
+  verEnvio(evaluacionId: number) {
+    this.router.navigate(['/alumno/envio', evaluacionId]);
+  }
+
+  verFeedback(evaluacion: ExamenAlumno) {
+    this.router.navigate(['/alumno/retroalimentacion', evaluacion.id]);
+  }
+
+  continueEvaluation(evaluacion: ExamenAlumno) {
+    this.router.navigate(['/alumno/realizar-evaluacion', evaluacion.id]);
+  }
+
+  openDiscardModal(evaluacion: ExamenAlumno) {
+    this.selectedEvaluation = evaluacion;
     this.showDiscardModal = true;
   }
 
   discardAttempt() {
     // Lógica para descartar intento
-    console.log('Descartando intento de:', this.selectedEvaluation?.title);
+    console.log('Descartando intento de:', this.selectedEvaluation?.titulo);
     this.showDiscardModal = false;
   }
 
@@ -146,12 +189,68 @@ export class Evaluaciones {
     this.showFinishedModal = false;
   }
 
-  getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'activa': return 'badge badge-activa';
-      case 'en-curso': return 'badge badge-curso';
-      case 'corregida': return 'badge badge-corr';
+  // ====== MÉTODOS HELPER ======
+
+  get materiasUnicas(): string[] {
+    return [...new Set(this.evaluaciones.map(e => e.materia))];
+  }
+
+  getEstadoDisplay(estado: string): string {
+    switch (estado) {
+      case 'activo': return 'Activa';
+      case 'pendiente': return 'Entregada';
+      case 'corregido': return 'Corregida';
+      default: return estado;
+    }
+  }
+
+  getBadgeClass(estado: string): string {
+    switch (estado) {
+      case 'activo': return 'badge badge-activa';
+      case 'pendiente': return 'badge badge-curso';
+      case 'corregido': return 'badge badge-corr';
       default: return 'badge';
     }
+  }
+
+  getIcon(estado: string): string {
+    switch (estado) {
+      case 'activo': return '🗒️';
+      case 'pendiente': return '📤';
+      case 'corregido': return '✅';
+      default: return '📝';
+    }
+  }
+
+  formatFecha(fecha: string): string {
+    if (!fecha) return '';
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getFechaDisplay(evaluacion: ExamenAlumno): string {
+    switch (evaluacion.estado) {
+      case 'activo':
+        return evaluacion.fecha_limite ? `Vence: ${this.formatFecha(evaluacion.fecha_limite)}` : 'Sin fecha límite';
+      case 'pendiente':
+        return evaluacion.fecha_realizacion ? `Entregado: ${this.formatFecha(evaluacion.fecha_realizacion)}` : 'Entregado';
+      case 'corregido':
+        return evaluacion.fecha_realizacion ? `Corregido: ${this.formatFecha(evaluacion.fecha_realizacion)}` : 'Corregido';
+      default:
+        return '';
+    }
+  }
+
+  tieneRetroalimentacion(evaluacion: ExamenAlumno): boolean {
+    return evaluacion.estado === 'corregido' && !!evaluacion.retroalimentacion;
+  }
+
+  // Método para recargar evaluaciones
+  recargar() {
+    this.cargarEvaluaciones();
   }
 }

@@ -1,35 +1,36 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { NgModule } from '@angular/core';
-import { NgFor } from '@angular/common';
-import { NgIf } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
+import { ExamenAlumnoService } from '../../../../services/examenalumno';
 
 interface Feedback {
-  question: string;
+  id: number;
+  pregunta: string;
   userAnswer: string;
   teacherComment: string;
   scoreType: 'full' | 'partial' | 'none';
+  puntajeObtenido: number;
+  puntajeMaximo: number;
 }
 
 @Component({
   selector: 'app-retroalimentacion',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterModule
-  ],
+  imports: [CommonModule,NgIf],
   templateUrl: './retroalimentacion.component.html',
   styleUrls: ['./retroalimentacion.component.css', '../evaluaciones/evaluaciones.component.css', '../resultado/resultado.component.css']
 })
 export class Retroalimentacion implements OnInit {
   evaluationId: string = '';
   feedbacks: Feedback[] = [];
+  examenTitulo: string = 'Retroalimentación';
+  isLoading: boolean = true;
+  error: string = '';
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private evaluacionesService: ExamenAlumnoService
   ) {}
 
   ngOnInit() {
@@ -38,39 +39,54 @@ export class Retroalimentacion implements OnInit {
   }
 
   loadFeedbacks() {
-    this.feedbacks = [
-      {
-        question: 'Pregunta 1: Células Procariotas',
-        userAnswer: 'Sistema de endomembranas',
-        teacherComment: '¡Excelente! Esta es la respuesta correcta. Demuestra un claro entendimiento de la estructura celular básica. Sigue así.',
-        scoreType: 'full'
+    this.isLoading = true;
+    this.evaluacionesService.getRetroalimentacionExamen(parseInt(this.evaluationId)).subscribe({
+      next: (data: any) => {
+        this.examenTitulo = data.titulo || 'Retroalimentación';
+        this.feedbacks = data.preguntas.map((pregunta: any) => ({
+          id: pregunta.id,
+          pregunta: pregunta.enunciado,
+          userAnswer: pregunta.respuesta_alumno || 'Sin respuesta',
+          teacherComment: pregunta.retroalimentacion || 'Sin comentarios del docente',
+          scoreType: this.getScoreType(pregunta.puntaje_obtenido, pregunta.puntaje_maximo),
+          puntajeObtenido: pregunta.puntaje_obtenido,
+          puntajeMaximo: pregunta.puntaje_maximo
+        }));
+        this.isLoading = false;
       },
-      {
-        question: 'Pregunta 2: Cromosomas Humanos',
-        userAnswer: '23. La mitosis bla bla...',
-        teacherComment: 'Tu respuesta es parcialmente correcta. Si bien identificas correctamente el número de pares (23), la explicación sobre la mitosis no es relevante en este contexto y resta claridad a tu argumento principal.',
-        scoreType: 'partial'
-      },
-      {
-        question: 'Pregunta 3: Capas de la Atmósfera',
-        userAnswer: 'Troposfera, Estratosfera, Ionosfera.',
-        teacherComment: 'Falta mencionar la Mesosfera y la Termosfera, que son críticas en el modelo de capas. Revisa el material sobre la estructura completa de la atmósfera terrestre.',
-        scoreType: 'none'
+      error: (error) => {
+        this.error = 'Error al cargar la retroalimentación';
+        this.isLoading = false;
+        console.error('Error cargando retroalimentación:', error);
       }
-    ];
+    });
   }
 
-  // Función para volver al resultado
+  getScoreType(puntajeObtenido: number, puntajeMaximo: number): 'full' | 'partial' | 'none' {
+    if (puntajeObtenido >= puntajeMaximo) return 'full';
+    if (puntajeObtenido > 0) return 'partial';
+    return 'none';
+  }
+
   volver() {
     this.router.navigate(['/alumno/resultado', this.evaluationId]);
   }
 
   getCardClass(scoreType: string): string {
     switch (scoreType) {
-      case 'full': return 'feedback-card';
+      case 'full': return 'feedback-card full-score';
       case 'partial': return 'feedback-card partial-score';
       case 'none': return 'feedback-card no-score';
       default: return 'feedback-card';
+    }
+  }
+
+  getScoreText(scoreType: string, puntajeObtenido: number, puntajeMaximo: number): string {
+    switch (scoreType) {
+      case 'full': return `Puntaje completo: ${puntajeObtenido}/${puntajeMaximo}`;
+      case 'partial': return `Puntaje parcial: ${puntajeObtenido}/${puntajeMaximo}`;
+      case 'none': return `Puntaje: ${puntajeObtenido}/${puntajeMaximo}`;
+      default: return `${puntajeObtenido}/${puntajeMaximo}`;
     }
   }
 }

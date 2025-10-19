@@ -31,5 +31,9 @@ export class AlumnoService {
   delete(id: number): Observable<any> {
     return this.http.delete(`${baseUrl}${id}/`);
   }
-}
 
+  // MÉTODO NUEVO: Buscar alumno por usuario ID
+  getByUsuarioId(usuarioId: number): Observable<Alumno> {
+    return this.http.get<Alumno>(`${baseUrl}?usuario=${usuarioId}`);
+  }
+}

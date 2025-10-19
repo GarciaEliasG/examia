@@ -5,40 +5,80 @@
 </header>
 
 <main class="wrap">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <p>🔄 Cargando resultados...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error">
+    <p>❌ {{ error }}</p>
+    <button class="btn primary" (click)="loadResults()">Reintentar</button>
+  </div>
+
+  <!-- Success State -->
+  <div *ngIf="examen && !isLoading">
     <div class="header-row">
         <button class="icon-btn back" aria-label="Volver" (click)="volver()">
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M14 7l-5 5 5 5V7z"/>
             </svg>
         </button>
-        <h1 class="title">Resultado: Parcial Integrador</h1>
+        <h1 class="title">Resultado: {{ examen.titulo }}</h1>
     </div>
   
-  <section class="result-summary">
-    <div class="score-box">
-      <p class="score-label">Calificación Final</p>
-      <span class="score">8.50</span>
-      <p class="status">Aprobado</p>
-    </div>
-    <div class="meta-data">
-      <p><strong>Materia:</strong> Matemática I</p>
-      <p><strong>Docente:</strong> Prof. Elena Gutiérrez</p>
-      <p><strong>Fecha de corrección:</strong> 15/10/2025</p>
-      <p><strong>Tiempo de resolución:</strong> 45 minutos</p>
-      <button class="btn primary full-width" (click)="viewFeedback()">Ver Retroalimentación Detallada</button>
-    </div>
-  </section>
-
-  <section class="question-list">
-    <h2>Detalle por Pregunta</h2>
-
-    <div *ngFor="let question of questions" [class]="'q-result-item ' + question.status">
-      <div class="q-icon">{{ getStatusIcon(question.status) }}</div>
-      <div class="q-content">
-        <p class="q-text">{{ question.text }} <span>({{ question.type }})</span></p>
-        <p class="feedback"><strong>Tu respuesta:</strong> {{ question.userAnswer }}</p>
+    <section class="result-summary">
+      <div class="score-box">
+        <p class="score-label">Calificación Final</p>
+        <span class="score">{{ examen.calificacion_final.toFixed(2) }}</span>
+        <p class="status">{{ getEstadoTexto(examen.calificacion_final, examen.puntaje_maximo) }}</p>
       </div>
-      <span class="q-score">{{ question.score }}</span>
-    </div>
-  </section>
+      <div class="meta-data">
+        <p><strong>Materia:</strong> {{ examen.materia }}</p>
+        <p><strong>Docente:</strong> {{ examen.docente }}</p>
+        <p><strong>Fecha de corrección:</strong> {{ formatFecha(examen.fecha_correccion) }}</p>
+        <p><strong>Tiempo de resolución:</strong> {{ examen.tiempo_resolucion }}</p>
+        <p><strong>Puntaje máximo:</strong> {{ examen.puntaje_maximo }}</p>
+        
+        <button 
+          class="btn primary full-width" 
+          (click)="viewFeedback()"
+          [disabled]="!tieneRetroalimentacion()">
+          Ver Retroalimentación Detallada
+        </button>
+      </div>
+    </section>
+
+    <section class="question-list">
+      <h2>Detalle por Pregunta ({{ examen.preguntas.length }})</h2>
+
+      <div *ngFor="let question of examen.preguntas; let i = index" 
+           [class]="'q-result-item ' + question.estado">
+        <div class="q-icon">{{ getStatusIcon(question.estado) }}</div>
+        <div class="q-content">
+          <p class="q-text">
+            <strong>Pregunta {{ i + 1 }}:</strong> {{ question.enunciado }} 
+            <span>({{ question.tipo }})</span>
+          </p>
+          <p class="feedback" *ngIf="question.respuesta_alumno">
+            <strong>Tu respuesta:</strong> {{ question.respuesta_alumno }}
+          </p>
+          <p class="feedback" *ngIf="!question.respuesta_alumno">
+            <strong>Tu respuesta:</strong> Sin respuesta
+          </p>
+          <p class="retroalimentacion" *ngIf="question.retroalimentacion">
+            <strong>Comentario:</strong> {{ question.retroalimentacion }}
+          </p>
+        </div>
+        <span class="q-score">
+          {{ question.puntaje_obtenido.toFixed(2) }} / {{ question.puntaje_maximo.toFixed(2) }}
+        </span>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="examen.preguntas.length === 0" class="empty-state">
+        <p>No hay preguntas para mostrar en este resultado.</p>
+      </div>
+    </section>
+  </div>
 </main>

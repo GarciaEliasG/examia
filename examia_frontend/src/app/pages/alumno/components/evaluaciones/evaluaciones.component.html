@@ -15,35 +15,54 @@
 
 <main class="wrap">
   <div class="header-row">
-    <a routerLink="/alumno/login" class="icon-btn back" aria-label="Volver">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    <a routerLink="/alumno/panel" class="icon-btn back" aria-label="Volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 7l-5 5 5 5V7z"/>
+      </svg>
     </a>
     <h1 class="title">Mis evaluaciones</h1>
   </div>
   <p class="subtitle">Consultá tus exámenes: activos, en curso, entregados y corregidos.</p>
 
+  <!-- Controles de recarga y estado -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <button class="btn ghost" (click)="recargar()" [disabled]="isLoading">
+      🔄 {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+    </button>
+    <span *ngIf="!isLoading" class="meta">
+      {{ filteredEvaluaciones.length }} evaluación(es) encontrada(s)
+      <span *ngIf="materiaDesdeMaterias" class="chip chip-materia">
+        Filtrado por: {{ materiaDesdeMaterias }}
+      </span>
+    </span>
+  </div>
+
+  <!-- Filtros -->
   <section class="filters">
     <div class="search">
       <svg viewBox="0 0 24 24"><path d="M21 20l-4.35-4.35A7.5 7.5 0 1 0 9.5 17a7.46 7.46 0 0 0 4.15-1.26L18 20zM4 9.5A5.5 5.5 0 1 1 9.5 15 5.51 5.51 0 0 1 4 9.5z"/></svg>
       <input 
         [(ngModel)]="searchTerm" 
+        (input)="onSearchChange(searchTerm)"
         type="search" 
         placeholder="Buscar por materia o título…">
     </div>
-    <select [(ngModel)]="selectedSubject">
-      <option value="">Todas las materias</option>
-      <option>Matemática I</option>
-      <option>Química</option>
-      <option>Programación</option>
+    
+    <select [(ngModel)]="estadoFilter" (change)="onEstadoFilterChange(estadoFilter)">
+      <option value="todos">Todos los estados</option>
+      <option value="activo">Activas</option>
+      <option value="pendiente">Entregadas</option>
+      <option value="corregido">Corregidas</option>
     </select>
-    <select [(ngModel)]="selectedStatus">
-      <option value="">Todos los estados</option>
-      <option>activa</option>
-      <option>en-curso</option>
-      <option>entregada</option>
-      <option>corregida</option>
+    
+    <select [(ngModel)]="materiaFilter" (change)="onMateriaFilterChange(materiaFilter)">
+      <option value="todos">Todas las materias</option>
+      <option *ngFor="let materia of materiasUnicas" [value]="materia">
+        {{ materia }}
+      </option>
     </select>
-    <select [(ngModel)]="selectedSort">
+    
+    <select [(ngModel)]="selectedSort" (change)="onSortChange(selectedSort)">
       <option value="">Ordenar por</option>
       <option>Más próximas primero</option>
       <option>Más recientes</option>
@@ -51,97 +70,90 @@
     </select>
   </section>
 
-  <section class="evals">
-    <!-- Evaluación Activa -->
-    <article *ngFor="let eval of filteredEvaluations" class="eval-card">
+  <!-- Estados de carga y error -->
+  <div *ngIf="isLoading" class="empty">
+    <p>🔄 Cargando tus evaluaciones...</p>
+  </div>
+
+  <div *ngIf="error && !isLoading" class="empty">
+    <p>❌ {{ error }}</p>
+    <button class="btn primary" (click)="cargarEvaluaciones()">Reintentar</button>
+  </div>
+
+  <!-- Lista de Evaluaciones DINÁMICA -->
+  <section *ngIf="!isLoading && !error" class="evals">
+    <!-- Estado vacío -->
+    <div *ngIf="filteredEvaluaciones.length === 0" class="empty">
+      <p>No se encontraron evaluaciones con los filtros aplicados.</p>
+      <button class="btn ghost" (click)="estadoFilter = 'todos'; materiaFilter = 'todos'; searchTerm = ''; aplicarFiltros()">
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- Evaluaciones DINÁMICAS desde la base de datos -->
+    <article *ngFor="let eval of filteredEvaluaciones" class="eval-card">
       <div class="left">
         <div class="icon">
-          <span *ngIf="eval.status === 'activa'">🗒️</span>
-          <span *ngIf="eval.status === 'en-curso'">⌛</span>
-          <span *ngIf="eval.status === 'entregada'">📤</span>
-          <span *ngIf="eval.status === 'corregida'">✅</span>
+          <span>{{ getIcon(eval.estado) }}</span>
         </div>
         <div class="info">
-          <h3>{{ eval.title }} <span class="chip chip-materia">{{ eval.subject }}</span></h3>
-          <p class="meta">Docente: <strong>{{ eval.teacher }}</strong> • Duración: {{ eval.duration }}</p>
+          <h3>{{ eval.titulo }} <span class="chip chip-materia">{{ eval.materia }}</span></h3>
+          <p class="meta">Docente: <strong>{{ eval.docente }}</strong></p>
           <p class="meta">
-            <span *ngIf="eval.status === 'activa' || eval.status === 'corregida'">
-              {{ eval.date }}
+            <span>{{ getFechaDisplay(eval) }}</span>
+            <span *ngIf="eval.estado === 'corregido' && eval.calificacion !== null && eval.calificacion !== undefined">
+              • Calificación: <strong>{{ eval.calificacion }}/10</strong>
             </span>
-            <span *ngIf="eval.status === 'en-curso'">
-              {{ eval.date }} • Tiempo restante estimado: {{ eval.progress }}
-            </span>
-            <span *ngIf="eval.status === 'entregada'">
-              {{ eval.date }} • Adjuntos enviados
-            </span>
-            <span *ngIf="eval.status === 'corregida' && eval.grade">
-              Calificación: <strong>{{ eval.grade }}</strong> • Retroalimentación disponible
+            <span *ngIf="tieneRetroalimentacion(eval)">
+              • Retroalimentación disponible
             </span>
           </p>
-          <span [class]="getStatusBadgeClass(eval.status)">
-            {{ eval.status === 'activa' ? 'Activa' : 
-               eval.status === 'en-curso' ? 'En curso' : 
-               eval.status === 'entregada' ? 'Entregada' : 'Corregida' }}
+          <span [class]="getBadgeClass(eval.estado)">
+            {{ getEstadoDisplay(eval.estado) }}
           </span>
         </div>
       </div>
       <div class="right">
         <!-- Activa -->
-        <button *ngIf="eval.status === 'activa'" 
+        <button *ngIf="eval.estado === 'activo'" 
                 class="btn primary" 
                 (click)="takeEvaluation(eval)">
           Rendir ahora
         </button>
-        <button *ngIf="eval.status === 'activa'" 
+        <button *ngIf="eval.estado === 'activo'" 
                 class="btn ghost" 
-                (click)="viewInstructions(eval)">
+                (click)="verInstrucciones(eval.id)">
           Ver instrucciones
         </button>
 
-        <!-- En curso -->
-        <button *ngIf="eval.status === 'en-curso'" 
-                class="btn primary" 
-                (click)="continueEvaluation(eval)">
-          Continuar
-        </button>
-        <button *ngIf="eval.status === 'en-curso'" 
+        <!-- Pendiente (Entregada) -->
+        <button *ngIf="eval.estado === 'pendiente'" 
                 class="btn ghost" 
-                (click)="openDiscardModal(eval)">
-          Descartar intento
-        </button>
-
-        <!-- Entregada -->
-        <button *ngIf="eval.status === 'entregada'" 
-                class="btn ghost" 
-                (click)="viewSubmission(eval)">
+                (click)="verEnvio(eval.id)">
           Ver envío
         </button>
 
         <!-- Corregida -->
-        <button *ngIf="eval.status === 'corregida'" 
+        <button *ngIf="eval.estado === 'corregido'" 
                 class="btn primary" 
-                (click)="viewResult(eval)">
+                (click)="verResultado(eval.id)">
           Ver resultado
         </button>
-        <button *ngIf="eval.status === 'corregida' && eval.hasFeedback" 
+        <button *ngIf="eval.estado === 'corregido' && tieneRetroalimentacion(eval)" 
                 class="btn ghost" 
-                (click)="viewFeedback(eval)">
+                (click)="verFeedback(eval)">
           Comentarios
         </button>
       </div>
     </article>
   </section>
 
-  <div *ngIf="filteredEvaluations.length === 0" class="empty">
-    <p>No encontramos evaluaciones con esos filtros.</p>
-  </div>
-
   <!-- Modal: Evaluación ya Finalizada -->
   <div *ngIf="showFinishedModal" class="modal-overlay">
     <div class="modal-card modal-error">
       <div class="modal-icon">⚠️</div>
       <h3>Evaluación ya Finalizada</h3>
-      <p>La evaluación '{{ selectedEvaluation?.title }}' ya ha sido resuelta y finalizada por usted. No es posible un nuevo intento.</p>
+      <p>La evaluación '{{ selectedEvaluation?.titulo }}' ya ha sido resuelta y finalizada por usted. No es posible un nuevo intento.</p>
       <div class="modal-actions">
         <button class="btn primary full-width" (click)="closeModals()">Aceptar</button>
       </div>
@@ -153,7 +165,7 @@
     <div class="modal-card modal-error">
       <div class="modal-icon">🗑️</div>
       <h3>Descartar Progreso</h3>
-      <p>¿Está seguro de que desea descartar su intento en '{{ selectedEvaluation?.title }}'? Se perderán todos los datos guardados.</p>
+      <p>¿Está seguro de que desea descartar su intento en '{{ selectedEvaluation?.titulo }}'? Se perderán todos los datos guardados.</p>
       <div class="modal-actions">
         <button class="btn primary" (click)="discardAttempt()">Sí, Descartar</button>
         <button class="btn ghost" (click)="closeModals()">Cancelar</button>

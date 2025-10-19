@@ -1,39 +1,83 @@
 <main class="wrap instructions-wrap">
-  <section class="instructions-card">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <p>🔄 Cargando instrucciones...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error">
+    <p>❌ {{ error }}</p>
+    <button class="btn primary" (click)="loadExamenData()">Reintentar</button>
+  </div>
+
+  <!-- Success State -->
+  <section *ngIf="examen && !isLoading" class="instructions-card">
     <div class="header-row">
       <button class="icon-btn back" aria-label="Volver a evaluaciones" (click)="volver()">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
       </button>
-      <h1 class="title">Instrucciones: Parcial 1</h1>
+      <h1 class="title">Instrucciones: {{ examen.titulo }}</h1>
     </div>
 
     <div class="content-body">
       <h2>Detalles de la Evaluación</h2>
       <ul>
-        <li><strong>Materia:</strong> Matemática I</li>
-        <li><strong>Docente:</strong> Prof. García</li>
-        <li><strong>Tipo de Evaluación:</strong> Parcial (Con cronómetro)</li>
-        <li><strong>Fecha de Vencimiento:</strong> 25/10 19:00 hs.</li>
+        <li><strong>Materia:</strong> {{ examen.materia }}</li>
+        <li><strong>Docente:</strong> {{ examen.docente }}</li>
+        <li><strong>Tipo de Evaluación:</strong> {{ examen.preguntas_count }} pregunta(s)</li>
+        <li><strong>Fecha de Vencimiento:</strong> {{ formatFecha(examen.fecha_limite) }}</li>
+        <li><strong>Duración estimada:</strong> {{ examen.duracion_minutos }} minutos</li>
       </ul>
 
       <h2>Reglas Importantes</h2>
       <ol>
-        <li class="rule-critical"><strong>Duración:</strong> Tendrás un máximo de 45 minutos para completar el examen. El tiempo comienza a correr al hacer clic en "Comenzar Evaluación".</li>
-        <li class="rule-critical"><strong>Intento Único:</strong> Solo tienes un intento para rendir esta evaluación. Una vez finalizada, no podrás volver a entrar.</li>
-        <li><strong>Guardado:</strong> Recuerda usar el botón "Guardar respuesta" después de cada pregunta de desarrollo. Si cierras la pestaña sin guardar, podrías perder tu progreso.</li>
-        <li><strong>Navegación:</strong> Puedes avanzar y retroceder entre preguntas libremente dentro del tiempo asignado.</li>
-        <li class="rule-critical"><strong>Envío Automático:</strong> Si el tiempo se agota, el examen se enviará automáticamente con las respuestas que hayas guardado.</li>
+        <li class="rule-critical" *ngIf="examen.duracion_minutos">
+          <strong>Duración:</strong> Tendrás un máximo de {{ examen.duracion_minutos }} minutos para completar el examen. El tiempo comienza a correr al hacer clic en "Comenzar Evaluación".
+        </li>
+        <li class="rule-critical" *ngIf="examen.intento_unico">
+          <strong>Intento Único:</strong> Solo tienes un intento para rendir esta evaluación. Una vez finalizada, no podrás volver a entrar.
+        </li>
+        <li>
+          <strong>Guardado:</strong> Recuerda usar el botón "Guardar respuesta" después de cada pregunta de desarrollo. Si cierras la pestaña sin guardar, podrías perder tu progreso.
+        </li>
+        <li>
+          <strong>Navegación:</strong> Puedes avanzar y retroceder entre preguntas libremente dentro del tiempo asignado.
+        </li>
+        <li class="rule-critical">
+          <strong>Envío Automático:</strong> Si el tiempo se agota, el examen se enviará automáticamente con las respuestas que hayas guardado.
+        </li>
       </ol>
       
+      <div *ngIf="examen.descripcion && examen.descripcion !== 'Sin descripción'">
+        <h2>Descripción Adicional</h2>
+        <p>{{ examen.descripcion }}</p>
+      </div>
+
       <h2>Requisitos Técnicos</h2>
       <ul>
         <li>Asegúrate de tener una conexión a internet estable.</li>
         <li>Se recomienda usar un navegador actualizado (Chrome, Firefox o Edge).</li>
+        <li>No recargues la página durante el examen para no perder tu progreso.</li>
       </ul>
+
+      <!-- Información específica del tipo de preguntas -->
+      <div *ngIf="examen.preguntas_count > 0">
+        <h2>Tipos de Preguntas</h2>
+        <ul>
+          <li><strong>Preguntas de desarrollo:</strong> Responde con tus propias palabras.</li>
+          <li><strong>Opción múltiple:</strong> Selecciona la respuesta correcta.</li>
+          <li><strong>Archivos adjuntos:</strong> Puedes subir documentos si se solicita.</li>
+        </ul>
+      </div>
     </div>
     
     <div class="action-row">
-      <button class="btn primary full-width" (click)="startEvaluation()">Comenzar Evaluación</button>
+      <button class="btn primary full-width" (click)="startEvaluation()">
+        Comenzar Evaluación
+      </button>
+      <button class="btn ghost full-width" (click)="volver()" style="margin-top: 12px;">
+        Volver a Evaluaciones
+      </button>
     </div>
   </section>
 </main>
