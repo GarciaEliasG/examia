@@ -1,4 +1,6 @@
+// models/examen.model.ts
 import { ProfesorCurso } from './profesor-curso.model';
+import { Pregunta } from './pregunta.model';
 
 export class Examen {
   id_examen!: number;
@@ -7,8 +9,13 @@ export class Examen {
   descripcion!: string;
   fecha_creacion!: Date;
   fecha_limite!: Date;
+  duracion_minutos!: number;
+  intento_unico!: boolean;
+  estado!: 'activo' | 'inactivo';
+  instrucciones?: string;
 
   profesorCurso?: ProfesorCurso;
+  preguntas?: Pregunta[];
 }
 
 export class ExamenWrapper {

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
-import { RouterModule } from '@angular/router';
 
-// Importar componentes
+// Importar componentes standalone
 import { LoginAlumno } from './components/login-alumno/login-alumno.component';
 import { PanelAlumno } from './components/panel-alumno/panel-alumno.component';
 import { Materias } from './components/materias/materias.component';

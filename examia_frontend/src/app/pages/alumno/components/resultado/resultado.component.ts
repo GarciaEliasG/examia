@@ -1,7 +1,8 @@
+// components/resultado/resultado.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { ExamenAlumno, ExamenAlumnoService } from '../../../../services/examenalumno';
+import { CommonModule, NgIf } from '@angular/common';
+import { ExamenAlumnoService } from '../../../../services/examenalumno';
 
 interface QuestionResult {
   id: number;
@@ -30,7 +31,7 @@ interface ExamenResultado {
 @Component({
   selector: 'app-resultado',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,NgIf],
   templateUrl: './resultado.component.html',
   styleUrls: ['./resultado.component.css']
 })
@@ -69,7 +70,7 @@ export class Resultado implements OnInit {
         };
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         this.error = 'Error al cargar los resultados';
         this.isLoading = false;
         console.error('Error cargando resultados:', error);

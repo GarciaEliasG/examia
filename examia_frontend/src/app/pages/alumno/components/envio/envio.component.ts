@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ExamenAlumno, ExamenAlumnoService } from '../../../../services/examenalumno';
+import { ExamenAlumnoService } from '../../../../services/examenalumno';
+import { ExamenAlumno } from '../../../../models/examen-alumno.model';
 
 interface Attachment {
   name: string;

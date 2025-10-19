@@ -80,7 +80,8 @@ class EvaluacionesAlumnoView(APIView):
                 
                 if not esta_vencido:  # Solo mostrar activos si no están vencidos
                     evaluaciones_data.append({
-                        'id': examen.id,
+                        'id_examen': examen.id,  # ✅ CAMBIO: id_examen en lugar de id
+                        'id_examen_alumno': None,  # ✅ CAMBIO: None explícito
                         'titulo': examen.titulo,
                         'descripcion': examen.descripcion,
                         'materia': examen.profesor_curso.curso.nombre,
@@ -89,15 +90,23 @@ class EvaluacionesAlumnoView(APIView):
                         'estado': 'activo',
                         'calificacion': None,
                         'fecha_creacion': examen.fecha_creacion,
-                        'examen_alumno_id': None
+                        'fecha_realizacion': None,  # ✅ CAMBIO: None explícito
+                        'retroalimentacion': ''  # ✅ CAMBIO: string vacío
                     })
             
             # 2. Agregar exámenes con registro en ExamenAlumno
             for ea in examenes_alumno:
-                estado = 'pendiente' if ea.calificacion_final is None else 'corregido'
+                # ✅ LÓGICA CORREGIDA: Verificar tanto fecha_realizacion como calificacion_final
+                if ea.calificacion_final is not None:
+                    estado = 'corregido'
+                elif ea.fecha_realizacion is not None:
+                    estado = 'pendiente'
+                else:
+                    estado = 'activo'  # ✅ NUEVO: Examen asignado pero no iniciado
                 
                 evaluaciones_data.append({
-                    'id': ea.examen.id,
+                    'id_examen': ea.examen.id,  # ✅ CAMBIO: id_examen
+                    'id_examen_alumno': ea.id,  # ✅ CAMBIO: id_examen_alumno
                     'titulo': ea.examen.titulo,
                     'descripcion': ea.examen.descripcion,
                     'materia': ea.examen.profesor_curso.curso.nombre,
@@ -106,7 +115,6 @@ class EvaluacionesAlumnoView(APIView):
                     'estado': estado,
                     'calificacion': float(ea.calificacion_final) if ea.calificacion_final else None,
                     'fecha_creacion': ea.examen.fecha_creacion,
-                    'examen_alumno_id': ea.id,
                     'fecha_realizacion': ea.fecha_realizacion,
                     'retroalimentacion': ea.retroalimentacion
                 })

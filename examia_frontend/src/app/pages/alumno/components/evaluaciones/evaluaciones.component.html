@@ -53,6 +53,8 @@
       <option value="activo">Activas</option>
       <option value="pendiente">Entregadas</option>
       <option value="corregido">Corregidas</option>
+      <option value="en_progreso">En progreso</option>
+      <option value="finalizado">Finalizadas</option>
     </select>
     
     <select [(ngModel)]="materiaFilter" (change)="onMateriaFilterChange(materiaFilter)">
@@ -92,6 +94,11 @@
 
     <!-- Evaluaciones DINÁMICAS desde la base de datos -->
     <article *ngFor="let eval of filteredEvaluaciones" class="eval-card">
+      <!-- DEBUG: Mostrar IDs (puedes remover esto después) -->
+      <div style="position: absolute; top: 5px; right: 5px; background: #f0f0f0; padding: 2px 6px; font-size: 10px; border-radius: 4px;">
+        ID: {{eval.id_examen_alumno}} | Examen: {{eval.id_examen}} | Estado: {{eval.estado}}
+      </div>
+      
       <div class="left">
         <div class="icon">
           <span>{{ getIcon(eval.estado) }}</span>
@@ -122,21 +129,40 @@
         </button>
         <button *ngIf="eval.estado === 'activo'" 
                 class="btn ghost" 
-                (click)="verInstrucciones(eval.id)">
+                (click)="verInstrucciones(eval.id_examen)">
           Ver instrucciones
+        </button>
+
+        <!-- En progreso -->
+        <button *ngIf="eval.estado === 'en_progreso'" 
+                class="btn primary" 
+                (click)="continueEvaluation(eval)">
+          Continuar
+        </button>
+        <button *ngIf="eval.estado === 'en_progreso'" 
+                class="btn ghost" 
+                (click)="openDiscardModal(eval)">
+          Descartar
         </button>
 
         <!-- Pendiente (Entregada) -->
         <button *ngIf="eval.estado === 'pendiente'" 
                 class="btn ghost" 
-                (click)="verEnvio(eval.id)">
+                (click)="verEnvio(eval.id_examen_alumno)">
+          Ver envío
+        </button>
+
+        <!-- Finalizada (pero no corregida) -->
+        <button *ngIf="eval.estado === 'finalizado'" 
+                class="btn ghost" 
+                (click)="verEnvio(eval.id_examen_alumno)">
           Ver envío
         </button>
 
         <!-- Corregida -->
         <button *ngIf="eval.estado === 'corregido'" 
                 class="btn primary" 
-                (click)="verResultado(eval.id)">
+                (click)="verResultado(eval.id_examen_alumno)">
           Ver resultado
         </button>
         <button *ngIf="eval.estado === 'corregido' && tieneRetroalimentacion(eval)" 

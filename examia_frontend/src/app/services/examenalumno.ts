@@ -1,28 +1,10 @@
+// services/examen-alumno.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface ExamenAlumno {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  materia: string;
-  docente: string;
-  fecha_limite: string;
-  estado: 'activo' | 'pendiente' | 'corregido';
-  calificacion?: number;
-  fecha_creacion: string;
-  examen_alumno_id?: number;
-  fecha_realizacion?: string;
-  retroalimentacion?: string;
-}
-
-export interface ExamenDetalle {
-  examen: any;
-  preguntas: any[];
-  examen_alumno_id?: number;
-  estado: string;
-}
+import { ExamenAlumno } from '../models/examen-alumno.model';
+import { Pregunta } from '../models/pregunta.model';
+import { RespuestaAlumno } from '../models/respuesta-alumno.model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,31 +14,56 @@ export class ExamenAlumnoService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Obtiene las evaluaciones PERSONALIZADAS del alumno autenticado
-   */
+  // Obtener evaluaciones del alumno
   getEvaluacionesAlumno(): Observable<ExamenAlumno[]> {
     return this.http.get<ExamenAlumno[]>(`${this.apiUrl}/alumno/evaluaciones/`);
   }
 
-  /**
-   * Obtiene el detalle completo de un examen con sus preguntas
-   */
-  getEnvioDetalle(examenId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenId}/envio`);
+  // Obtener detalle del examen con preguntas
+  getExamenDetalle(examenId: number): Observable<{examen: any, preguntas: Pregunta[]}> {
+    return this.http.get<{examen: any, preguntas: Pregunta[]}>(
+      `${this.apiUrl}/alumno/examen/${examenId}/`
+    );
   }
 
-  getExamenDetalle(examenId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenId}/`);
+  // Iniciar evaluación
+  iniciarEvaluacion(examenId: number): Observable<{examen_alumno_id: number, preguntas: Pregunta[]}> {
+    return this.http.post<{examen_alumno_id: number, preguntas: Pregunta[]}>(
+      `${this.apiUrl}/alumno/examen/${examenId}/iniciar`, 
+      {}
+    );
   }
 
-  getResultadoExamen(examenId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenId}/resultado`);
+  // Guardar respuesta individual
+  guardarRespuesta(respuesta: Partial<RespuestaAlumno>): Observable<RespuestaAlumno> {
+    return this.http.post<RespuestaAlumno>(
+      `${this.apiUrl}/alumno/respuestas/guardar`, 
+      respuesta
+    );
   }
 
-  getRetroalimentacionExamen(examenId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenId}/retroalimentacion`);
- }
-  
+  // Finalizar evaluación
+  finalizarEvaluacion(examenAlumnoId: number): Observable<ExamenAlumno> {
+    return this.http.post<ExamenAlumno>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/finalizar`, 
+      {}
+    );
+  }
 
+  // Obtener envío (respuestas guardadas)
+  getEnvioDetalle(examenAlumnoId: number): Observable<{examen: any, respuestas: RespuestaAlumno[]}> {
+    return this.http.get<{examen: any, respuestas: RespuestaAlumno[]}>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/envio`
+    );
+  }
+
+  // Obtener resultado del examen
+  getResultadoExamen(examenAlumnoId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/alumno/examen/${examenAlumnoId}/resultado`);
+  }
+
+  // Para la segunda parte con IA
+  getRetroalimentacionExamen(examenAlumnoId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/alumno/examen/${examenAlumnoId}/retroalimentacion`);
+  }
 }

@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ExamenAlumnoService, ExamenAlumno } from '../../../../services/examenalumno';
+import { ExamenAlumnoService } from '../../../../services/examenalumno';
+import { ExamenAlumno, getIdExamen, getIdExamenAlumno, getEstadoDisplay, getBadgeClass } from '../../../../models/examen-alumno.model';
 import { AuthService } from '../../../../services/auth';
 
 @Component({
   selector: 'app-evaluaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule,RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './evaluaciones.component.html',
   styleUrls: ['./evaluaciones.component.css']
 })
@@ -51,7 +52,6 @@ export class ExamenesAlumno implements OnInit {
     });
   }
 
-  // ... el resto de los métodos se mantiene igual ...
   /**
    * Carga las evaluaciones del alumno desde el backend
    */
@@ -59,6 +59,22 @@ export class ExamenesAlumno implements OnInit {
     this.isLoading = true;
     this.evaluacionesService.getEvaluacionesAlumno().subscribe({
       next: (data) => {
+        console.log('🔍 DEBUG - Datos COMPLETOS recibidos:', data);
+        
+        // DEBUG específico para EXAMEN PRUEBA1
+        const examenPrueba = data.find(e => e.titulo === 'EXAMEN PRUEBA1');
+        if (examenPrueba) {
+          console.log('🔍 DEBUG - EXAMEN PRUEBA1:', {
+            id_examen_alumno: examenPrueba.id_examen_alumno,
+            id_examen: examenPrueba.id_examen,
+            titulo: examenPrueba.titulo,
+            estado: examenPrueba.estado,
+            fecha_realizacion: examenPrueba.fecha_realizacion,
+            calificacion: examenPrueba.calificacion,
+            fecha_limite: examenPrueba.fecha_limite
+          });
+        }
+        
         this.evaluaciones = data;
         this.aplicarFiltros();
         this.isLoading = false;
@@ -142,35 +158,72 @@ export class ExamenesAlumno implements OnInit {
     }
   }
 
-  // ====== MÉTODOS DE NAVEGACIÓN ======
+  // ====== MÉTODOS DE NAVEGACIÓN CORREGIDOS ======
 
   takeEvaluation(evaluacion: ExamenAlumno) {
-    if (evaluacion.estado === 'pendiente' || evaluacion.estado === 'corregido') {
+    if (evaluacion.estado === 'pendiente' || evaluacion.estado === 'corregido' || evaluacion.estado === 'finalizado') {
       this.selectedEvaluation = evaluacion;
       this.showFinishedModal = true;
     } else {
-      this.verInstrucciones(evaluacion.id);
+      // Para exámenes activos, necesitamos id_examen para las instrucciones
+      this.verExamen(getIdExamen(evaluacion));
     }
   }
 
-  verInstrucciones(evaluacionId: number) {
-    this.router.navigate(['/alumno/instrucciones', evaluacionId]);
+  verInstrucciones(examenId: number) {
+    if (!examenId || examenId === 0) {
+      console.error('❌ ID de examen inválido:', examenId);
+      return;
+    }
+    console.log('🔄 Navegando a instrucciones con ID:', examenId);
+    this.router.navigate(['/alumno/instrucciones', examenId]);
   }
 
-  verResultado(evaluacionId: number) {
-    this.router.navigate(['/alumno/resultado', evaluacionId]);
+  verExamen(examenId: number) {
+    if (!examenId || examenId === 0) {
+      console.error('❌ ID de examen inválido:', examenId);
+      return;
+    }
+    console.log('🔄 Navegando a Examenes con ID:', examenId);
+    this.router.navigate(['/alumno/realizar-evaluacion', examenId]);
+  }
+  
+  verResultado(examenAlumnoId: number) {
+    if (!examenAlumnoId || examenAlumnoId === 0) {
+      console.error('❌ ID de examen alumno inválido:', examenAlumnoId);
+      return;
+    }
+    console.log('🔄 Navegando a resultado con ID:', examenAlumnoId);
+    this.router.navigate(['/alumno/resultado', examenAlumnoId]);
   }
 
-  verEnvio(evaluacionId: number) {
-    this.router.navigate(['/alumno/envio', evaluacionId]);
+  verEnvio(examenAlumnoId: number) {
+    if (!examenAlumnoId || examenAlumnoId === 0) {
+      console.error('❌ ID de examen alumno inválido:', examenAlumnoId);
+      return;
+    }
+    console.log('🔄 Navegando a envío con ID:', examenAlumnoId);
+    this.router.navigate(['/alumno/envio', examenAlumnoId]);
   }
 
   verFeedback(evaluacion: ExamenAlumno) {
-    this.router.navigate(['/alumno/retroalimentacion', evaluacion.id]);
+    const examenAlumnoId = getIdExamenAlumno(evaluacion);
+    if (!examenAlumnoId || examenAlumnoId === 0) {
+      console.error('❌ ID de examen alumno inválido:', examenAlumnoId);
+      return;
+    }
+    console.log('🔄 Navegando a retroalimentación con ID:', examenAlumnoId);
+    this.router.navigate(['/alumno/retroalimentacion', examenAlumnoId]);
   }
 
   continueEvaluation(evaluacion: ExamenAlumno) {
-    this.router.navigate(['/alumno/realizar-evaluacion', evaluacion.id]);
+    const examenAlumnoId = getIdExamenAlumno(evaluacion);
+    if (!examenAlumnoId || examenAlumnoId === 0) {
+      console.error('❌ ID de evaluación inválido:', examenAlumnoId);
+      return;
+    }
+    console.log('🔄 Continuando evaluación con ID:', examenAlumnoId);
+    this.router.navigate(['/alumno/realizar-evaluacion', examenAlumnoId]);
   }
 
   openDiscardModal(evaluacion: ExamenAlumno) {
@@ -179,7 +232,6 @@ export class ExamenesAlumno implements OnInit {
   }
 
   discardAttempt() {
-    // Lógica para descartar intento
     console.log('Descartando intento de:', this.selectedEvaluation?.titulo);
     this.showDiscardModal = false;
   }
@@ -196,21 +248,11 @@ export class ExamenesAlumno implements OnInit {
   }
 
   getEstadoDisplay(estado: string): string {
-    switch (estado) {
-      case 'activo': return 'Activa';
-      case 'pendiente': return 'Entregada';
-      case 'corregido': return 'Corregida';
-      default: return estado;
-    }
+    return getEstadoDisplay(estado);
   }
 
   getBadgeClass(estado: string): string {
-    switch (estado) {
-      case 'activo': return 'badge badge-activa';
-      case 'pendiente': return 'badge badge-curso';
-      case 'corregido': return 'badge badge-corr';
-      default: return 'badge';
-    }
+    return getBadgeClass(estado);
   }
 
   getIcon(estado: string): string {
@@ -218,21 +260,31 @@ export class ExamenesAlumno implements OnInit {
       case 'activo': return '🗒️';
       case 'pendiente': return '📤';
       case 'corregido': return '✅';
+      case 'en_progreso': return '⏳';
+      case 'finalizado': return '📝';
       default: return '📝';
     }
   }
 
-  formatFecha(fecha: string): string {
+  formatFecha(fecha: string | Date): string {
     if (!fecha) return '';
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  
+    try {
+      const fechaObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+      return fechaObj.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return 'Fecha inválida';
+    }
   }
 
   getFechaDisplay(evaluacion: ExamenAlumno): string {
+    // ✅ CORREGIDO: Usar SOLO el campo 'estado' para determinar qué mostrar
     switch (evaluacion.estado) {
       case 'activo':
         return evaluacion.fecha_limite ? `Vence: ${this.formatFecha(evaluacion.fecha_limite)}` : 'Sin fecha límite';
@@ -240,13 +292,17 @@ export class ExamenesAlumno implements OnInit {
         return evaluacion.fecha_realizacion ? `Entregado: ${this.formatFecha(evaluacion.fecha_realizacion)}` : 'Entregado';
       case 'corregido':
         return evaluacion.fecha_realizacion ? `Corregido: ${this.formatFecha(evaluacion.fecha_realizacion)}` : 'Corregido';
+      case 'en_progreso':
+        return `En progreso - Iniciado: ${this.formatFecha(evaluacion.fecha_inicio)}`;
+      case 'finalizado':
+        return `Finalizado: ${this.formatFecha(evaluacion.fecha_realizacion)}`;
       default:
-        return '';
+        return evaluacion.fecha_limite ? `Vence: ${this.formatFecha(evaluacion.fecha_limite)}` : 'Sin fecha límite';
     }
   }
 
   tieneRetroalimentacion(evaluacion: ExamenAlumno): boolean {
-    return evaluacion.estado === 'corregido' && !!evaluacion.retroalimentacion;
+    return evaluacion.estado === 'corregido' && !!evaluacion.retroalimentacion && evaluacion.retroalimentacion.length > 0;
   }
 
   // Método para recargar evaluaciones
