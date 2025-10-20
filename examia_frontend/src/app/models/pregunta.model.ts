@@ -2,7 +2,7 @@
 import { Examen } from './examen.model';
 
 export class Pregunta {
-  id_pregunta!: number;
+  pregunta_id!: number;
   id_examen!: number;
   enunciado!: string;
   tipo!: 'multiple_choice' | 'desarrollo' | 'texto' | 'archivo';

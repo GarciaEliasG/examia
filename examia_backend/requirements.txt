@@ -1,1 +1,11 @@
 pip freeze > requirements.txt
+
+# requirements.txt - AÑADIR estas líneas
+
+# Para IA y variables de entorno
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Si no los tienes, añade también:
+django-cors-headers==4.3.1
+djangorestframework-simplejwt==5.3.0

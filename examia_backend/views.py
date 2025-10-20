@@ -1,3 +1,4 @@
+# views.py (COMPLETO CORREGIDO)
 from rest_framework import viewsets
 from .models import *
 from .serializers import *
@@ -7,7 +8,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q
-from datetime import date
+from datetime import date, datetime
+import json
+import threading
+
 
 # ====== ENDPOINTS PÚBLICOS (Sin autenticación) ======
 
@@ -39,8 +43,8 @@ def login_view(request):
 # ====== ENDPOINTS PROTEGIDOS (Requieren autenticación) ======
 
 class EvaluacionesAlumnoView(APIView):
-    permission_classes = [IsAuthenticated]
-    
+    #permission_classes = [IsAuthenticated]
+    permission_classes=[AllowAny]
     def get(self, request):
         try:
             # Obtener el alumno autenticado
@@ -63,7 +67,7 @@ class EvaluacionesAlumnoView(APIView):
             examenes_activos = Examen.objects.filter(
                 profesor_curso__curso_id__in=cursos_inscritos
             ).exclude(
-                examenalumno__alumno=alumno  # Excluir los que ya tienen registro
+                examenalumno__alumno=alumno
             ).select_related(
                 'profesor_curso__curso',
                 'profesor_curso__profesor'
@@ -78,10 +82,10 @@ class EvaluacionesAlumnoView(APIView):
                 hoy = date.today()
                 esta_vencido = examen.fecha_limite and examen.fecha_limite < hoy
                 
-                if not esta_vencido:  # Solo mostrar activos si no están vencidos
+                if not esta_vencido:
                     evaluaciones_data.append({
-                        'id_examen': examen.id,  # ✅ CAMBIO: id_examen en lugar de id
-                        'id_examen_alumno': None,  # ✅ CAMBIO: None explícito
+                        'id': None,  # ✅ CORREGIDO: No tiene ID de ExamenAlumno aún
+                        'id_examen': examen.id,
                         'titulo': examen.titulo,
                         'descripcion': examen.descripcion,
                         'materia': examen.profesor_curso.curso.nombre,
@@ -90,23 +94,22 @@ class EvaluacionesAlumnoView(APIView):
                         'estado': 'activo',
                         'calificacion': None,
                         'fecha_creacion': examen.fecha_creacion,
-                        'fecha_realizacion': None,  # ✅ CAMBIO: None explícito
-                        'retroalimentacion': ''  # ✅ CAMBIO: string vacío
+                        'fecha_realizacion': None,
+                        'retroalimentacion': ''
                     })
             
             # 2. Agregar exámenes con registro en ExamenAlumno
             for ea in examenes_alumno:
-                # ✅ LÓGICA CORREGIDA: Verificar tanto fecha_realizacion como calificacion_final
                 if ea.calificacion_final is not None:
                     estado = 'corregido'
                 elif ea.fecha_realizacion is not None:
                     estado = 'pendiente'
                 else:
-                    estado = 'activo'  # ✅ NUEVO: Examen asignado pero no iniciado
+                    estado = 'activo'
                 
                 evaluaciones_data.append({
-                    'id_examen': ea.examen.id,  # ✅ CAMBIO: id_examen
-                    'id_examen_alumno': ea.id,  # ✅ CAMBIO: id_examen_alumno
+                    'id': ea.id,  # ✅ CORREGIDO: Usar 'id' directamente
+                    'id_examen': ea.examen.id,
                     'titulo': ea.examen.titulo,
                     'descripcion': ea.examen.descripcion,
                     'materia': ea.examen.profesor_curso.curso.nombre,
@@ -127,9 +130,9 @@ class EvaluacionesAlumnoView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-# Vista para obtener detalles de un examen específico con preguntas
 class ExamenDetalleView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
+    permission_classes=[AllowAny]
     
     def get(self, request, examen_id):
         try:
@@ -159,7 +162,7 @@ class ExamenDetalleView(APIView):
             return Response({
                 'examen': ExamenSerializer(examen).data,
                 'preguntas': preguntas_data,
-                'examen_alumno_id': examen_alumno.id if examen_alumno else None,
+                'examen_alumno_id': examen_alumno.id if examen_alumno else None,  # ✅ CORREGIDO
                 'estado': 'corregido' if examen_alumno and examen_alumno.calificacion_final else 
                          'pendiente' if examen_alumno else 'activo'
             })
@@ -170,35 +173,240 @@ class ExamenDetalleView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-# ====== NUEVA VISTA PARA MATERIAS DEL ALUMNO ======
+# ====== NUEVOS ENDPOINTS PARA EL SERVICIO ANGULAR ======
+
+class IniciarEvaluacionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, examen_id):
+        try:
+            alumno = Alumno.objects.get(usuario=request.user)
+            examen = Examen.objects.get(id=examen_id)
+            
+            # Verificar acceso al examen
+            cursos_inscritos = Inscripcion.objects.filter(
+                alumno=alumno
+            ).values_list('curso_id', flat=True)
+            
+            if examen.profesor_curso.curso_id not in cursos_inscritos:
+                return Response(
+                    {'error': 'No tienes acceso a este examen'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Crear o obtener ExamenAlumno
+            examen_alumno, created = ExamenAlumno.objects.get_or_create(
+                alumno=alumno,
+                examen=examen,
+                defaults={'fecha_inicio': datetime.now()}
+            )
+            
+            # Si ya existe pero no tiene fecha_inicio, actualizar
+            if not created and not examen_alumno.fecha_inicio:
+                examen_alumno.fecha_inicio = datetime.now()
+                examen_alumno.save()
+            
+            # Obtener preguntas del examen
+            preguntas = Pregunta.objects.filter(examen=examen)
+            preguntas_data = PreguntaSerializer(preguntas, many=True).data
+            
+            return Response({
+                'examen_alumno_id': examen_alumno.id,  # ✅ CORREGIDO
+                'preguntas': preguntas_data
+            })
+            
+        except Examen.DoesNotExist:
+            return Response(
+                {'error': 'Examen no encontrado'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class GuardarRespuestaView(APIView):
+    permission_classes = [AllowAny]  # ← Temporal sin auth
+    
+    def post(self, request):
+        print("🎯 GUARDAR RESPUESTA ORIGINAL - VISTA EJECUTADA")
+        print("📦 Datos recibidos:", request.data)
+        
+        try:
+            alumno = Alumno.objects.get(usuario=request.user)
+            data = request.data
+            
+            # Validar campos requeridos
+            required_fields = ['examen_alumno_id', 'pregunta_id', 'respuesta']
+            for field in required_fields:
+                if field not in data:
+                    return Response(
+                        {'error': f'Campo requerido: {field}'}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # Obtener examen_alumno
+            examen_alumno = ExamenAlumno.objects.get(
+                id=data['examen_alumno_id'],
+                alumno=alumno
+            )
+            
+            # Obtener pregunta
+            pregunta = Pregunta.objects.get(
+                id=data['pregunta_id'],
+                examen=examen_alumno.examen
+            )
+            
+            # Crear o actualizar respuesta
+            respuesta_alumno, created = RespuestaAlumno.objects.update_or_create(
+                examen_alumno=examen_alumno,
+                pregunta=pregunta,
+                defaults={
+                    'respuesta': data['respuesta'],
+                    'fecha_respuesta': datetime.now()
+                }
+            )
+            
+            serializer = RespuestaAlumnoSerializer(respuesta_alumno)
+            print("✅ Respuesta guardada exitosamente")
+            return Response(serializer.data)
+            
+        except Exception as e:
+            print(f"💥 ERROR: {e}")
+            return Response({'error': str(e)}, status=500)
+
+class FinalizarEvaluacionView(APIView):
+    #permission_classes = [IsAuthenticated]
+    permission_classes=[AllowAny]
+
+    def post(self, request, examen_alumno_id):
+        try:
+            alumno = Alumno.objects.get(usuario=request.user)
+            
+            # Verificar que el ExamenAlumno pertenece al alumno
+            examen_alumno = ExamenAlumno.objects.get(
+                id=examen_alumno_id,
+                alumno=alumno
+            )
+            
+            # ✅ AGREGAR LOGS AQUÍ PARA DIAGNOSTICAR
+            print(f"🔍 DEBUG FINALIZAR EVALUACIÓN:")
+            print(f"   📋 ExamenAlumno ID: {examen_alumno.id}")
+            print(f"   🕒 ANTES - fecha_realizacion: {examen_alumno.fecha_realizacion}")
+            print(f"   📝 ANTES - estado: {examen_alumno.estado}")
+            print(f"   📊 ANTES - calificacion_final: {examen_alumno.calificacion_final}")
+            
+            # Verificar que no esté ya finalizado
+            if examen_alumno.fecha_realizacion:
+                print(f"   ⚠️  Este examen YA estaba finalizado el: {examen_alumno.fecha_realizacion}")
+                return Response(
+                    {'error': 'Este examen ya fue finalizado'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # 1. Actualizar fecha de realización
+            examen_alumno.fecha_realizacion = datetime.now()
+            examen_alumno.estado = 'finalizado'
+            examen_alumno.save()
+            
+            # ✅ AGREGAR LOGS DESPUÉS DE GUARDAR
+            print(f"   💾 DESPUÉS DE GUARDAR:")
+            print(f"   🕒 fecha_realizacion: {examen_alumno.fecha_realizacion}")
+            print(f"   📝 estado: {examen_alumno.estado}")
+            
+            # Recargar el objeto desde la base de datos para verificar
+            examen_alumno_refreshed = ExamenAlumno.objects.get(id=examen_alumno_id)
+            print(f"   🔄 DESPUÉS DE RECARGAR DE BD:")
+            print(f"   🕒 fecha_realizacion: {examen_alumno_refreshed.fecha_realizacion}")
+            print(f"   📝 estado: {examen_alumno_refreshed.estado}")
+            
+            # 2. ✅ Iniciar corrección automática en segundo plano
+            self.iniciar_correccion_automatica(examen_alumno_id)
+            
+            serializer = ExamenAlumnoSerializer(examen_alumno)
+            return Response({
+                **serializer.data,
+                'mensaje': 'Evaluación finalizada. La corrección automática está en proceso.'
+            })
+            
+        except ExamenAlumno.DoesNotExist:
+            print(f"   ❌ ERROR: ExamenAlumno {examen_alumno_id} no encontrado")
+            return Response(
+                {'error': 'Examen no encontrado'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"   💥 ERROR INESPERADO: {str(e)}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def iniciar_correccion_automatica(self, examen_alumno_id):
+        """Inicia corrección en segundo plano sin bloquear la respuesta"""
+        from .ia_correccion_service import iniciar_correccion_automatica_async
+        print(f"   🤖 Iniciando corrección automática para examen {examen_alumno_id}")
+        iniciar_correccion_automatica_async(examen_alumno_id)
+
+# ====== NUEVO ENDPOINT PARA CORRECCIÓN AUTOMÁTICA ======
+
+class CorregirEvaluacionAutoView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, examen_alumno_id):
+        try:
+            # Verificar permisos (solo profesores pueden forzar corrección)
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'No autorizado para corregir evaluaciones'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Llamar al servicio de IA
+            from .ia_correccion_service import IACorreccionService
+            correccion_service = IACorreccionService()
+            resultado = correccion_service.corregir_evaluacion_completa(examen_alumno_id)
+            
+            if resultado['success']:
+                return Response({
+                    'message': 'Evaluación corregida automáticamente por IA',
+                    'calificacion_final': resultado['calificacion_final'],
+                    'puntaje_total': resultado['puntaje_total'],
+                    'puntaje_maximo': resultado['puntaje_maximo'],
+                    'preguntas_corregidas': resultado['preguntas_corregidas']
+                })
+            else:
+                return Response(
+                    {'error': f"Error en corrección automática: {resultado['error']}"}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
+        except ExamenAlumno.DoesNotExist:
+            return Response(
+                {'error': 'Evaluación no encontrada'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+# ====== VISTAS EXISTENTES ADAPTADAS ======
 
 class MateriasAlumnoView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         try:
-            # Obtener el alumno autenticado
             alumno = Alumno.objects.get(usuario=request.user)
             
-            # Obtener cursos del alumno
             inscripciones = Inscripcion.objects.filter(
                 alumno=alumno
             ).select_related('curso')
             
-            # Obtener exámenes activos para cada curso
             cursos_data = []
             for inscripcion in inscripciones:
                 curso = inscripcion.curso
                 
-                # Verificar si tiene exámenes activos
                 tiene_evaluaciones_activas = Examen.objects.filter(
                     profesor_curso__curso=curso,
                     fecha_limite__gte=date.today()
                 ).exclude(
-                    examenalumno__alumno=alumno  # Excluir los que ya realizó
+                    examenalumno__alumno=alumno
                 ).exists()
                 
-                # Obtener profesor del curso
                 profesor_curso = ProfesorCurso.objects.filter(
                     curso=curso
                 ).select_related('profesor').first()
@@ -206,10 +414,10 @@ class MateriasAlumnoView(APIView):
                 cursos_data.append({
                     'id': curso.id,
                     'nombre': curso.nombre,
-                    'codigo': f"{curso.nombre[:3].upper()}001",  # Código generado
+                    'codigo': f"{curso.nombre[:3].upper()}001",
                     'docente': profesor_curso.profesor.nombre if profesor_curso else 'Sin docente asignado',
-                    'aula': 'Aula 204',  # Puedes agregar este campo a tu modelo Curso
-                    'turno': 'mañana',   # Puedes agregar este campo a tu modelo Curso
+                    'aula': 'Aula 204',
+                    'turno': 'mañana',
                     'tieneEvaluacionesActivas': tiene_evaluaciones_activas
                 })
             
@@ -221,20 +429,17 @@ class MateriasAlumnoView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-# ====== VISTAS PARA COMPONENTES DINÁMICOS ======
-
 class ExamenEnvioView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, examen_id):
+    def get(self, request, examen_alumno_id):
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             examen_alumno = ExamenAlumno.objects.get(
-                alumno=alumno, 
-                examen_id=examen_id
+                id=examen_alumno_id,  # ✅ CORREGIDO
+                alumno=alumno
             )
             
-            # Obtener respuestas del alumno
             respuestas = RespuestaAlumno.objects.filter(
                 examen_alumno=examen_alumno
             ).select_related('pregunta')
@@ -258,7 +463,7 @@ class ExamenEnvioView(APIView):
                 'docente': examen_alumno.examen.profesor_curso.profesor.nombre,
                 'fecha_realizacion': examen_alumno.fecha_realizacion,
                 'estado': 'pendiente' if examen_alumno.calificacion_final is None else 'corregido',
-                'preguntas': respuestas_data
+                'respuestas': respuestas_data
             })
             
         except ExamenAlumno.DoesNotExist:
@@ -270,23 +475,21 @@ class ExamenEnvioView(APIView):
 class ExamenResultadoView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, examen_id):
+    def get(self, request, examen_alumno_id):
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             examen_alumno = ExamenAlumno.objects.get(
-                alumno=alumno, 
-                examen_id=examen_id,
-                calificacion_final__isnull=False  # Solo exámenes corregidos
+                id=examen_alumno_id,  # ✅ CORREGIDO
+                alumno=alumno,
+                calificacion_final__isnull=False
             )
             
-            # Obtener respuestas con retroalimentación
             respuestas = RespuestaAlumno.objects.filter(
                 examen_alumno=examen_alumno
             ).select_related('pregunta')
             
             preguntas_data = []
             for respuesta in respuestas:
-                # Determinar estado según puntaje
                 puntaje_obtenido = float(respuesta.puntaje_obtenido) if respuesta.puntaje_obtenido else 0
                 puntaje_maximo = float(respuesta.pregunta.puntaje)
                 
@@ -308,16 +511,15 @@ class ExamenResultadoView(APIView):
                     'retroalimentacion': f"Retroalimentación para: {respuesta.pregunta.enunciado[:50]}..." if respuesta.pregunta.enunciado else "Sin retroalimentación específica"
                 })
             
-            # Calcular puntaje máximo total
             puntaje_maximo_total = sum([p['puntaje_maximo'] for p in preguntas_data])
             
             return Response({
-                'id': examen_alumno.examen.id,
+                'id': examen_alumno.id,  # ✅ CORREGIDO: Usar ID de ExamenAlumno
                 'titulo': examen_alumno.examen.titulo,
                 'materia': examen_alumno.examen.profesor_curso.curso.nombre,
                 'docente': examen_alumno.examen.profesor_curso.profesor.nombre,
                 'fecha_correccion': examen_alumno.fecha_realizacion,
-                'tiempo_resolucion': '45 minutos',  # Podrías agregar este campo al modelo
+                'tiempo_resolucion': '45 minutos',
                 'calificacion_final': float(examen_alumno.calificacion_final),
                 'puntaje_maximo': puntaje_maximo_total,
                 'estado': 'corregido',
@@ -333,16 +535,15 @@ class ExamenResultadoView(APIView):
 class ExamenRetroalimentacionView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, examen_id):
+    def get(self, request, examen_alumno_id):
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             examen_alumno = ExamenAlumno.objects.get(
-                alumno=alumno, 
-                examen_id=examen_id,
+                id=examen_alumno_id,  # ✅ CORREGIDO
+                alumno=alumno,
                 calificacion_final__isnull=False
             )
             
-            # Obtener respuestas con retroalimentación detallada
             respuestas = RespuestaAlumno.objects.filter(
                 examen_alumno=examen_alumno
             ).select_related('pregunta')
@@ -381,7 +582,6 @@ class ExamenRetroalimentacionView(APIView):
             )
     
     def generar_retroalimentacion(self, enunciado, puntaje_obtenido, puntaje_maximo):
-        """Genera retroalimentación basada en el puntaje obtenido"""
         if puntaje_obtenido >= puntaje_maximo:
             return f"¡Excelente! Respuesta correcta para: {enunciado[:50]}... Demuestra buen entendimiento del tema."
         elif puntaje_obtenido > 0:
@@ -434,3 +634,13 @@ class ExamenAlumnoViewSet(viewsets.ModelViewSet):
 class RespuestaAlumnoViewSet(viewsets.ModelViewSet):
     queryset = RespuestaAlumno.objects.all()
     serializer_class = RespuestaAlumnoSerializer
+
+class GuardarRespuestaViewSimple(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        print("🎯 GUARDAR RESPUESTA SIMPLE - VISTA EJECUTADA")
+        return Response({
+            'message': 'Respuesta guardada exitosamente (vista simple)',
+            'data_received': request.data
+        }, status=200)

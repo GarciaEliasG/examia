@@ -65,7 +65,7 @@ export class ExamenesAlumno implements OnInit {
         const examenPrueba = data.find(e => e.titulo === 'EXAMEN PRUEBA1');
         if (examenPrueba) {
           console.log('🔍 DEBUG - EXAMEN PRUEBA1:', {
-            id_examen_alumno: examenPrueba.id_examen_alumno,
+            id: examenPrueba.id,  // ✅ CORREGIDO: Usar 'id'
             id_examen: examenPrueba.id_examen,
             titulo: examenPrueba.titulo,
             estado: examenPrueba.estado,
@@ -188,7 +188,8 @@ export class ExamenesAlumno implements OnInit {
     this.router.navigate(['/alumno/realizar-evaluacion', examenId]);
   }
   
-  verResultado(examenAlumnoId: number) {
+  verResultado(evaluacion: ExamenAlumno) {
+    const examenAlumnoId = getIdExamenAlumno(evaluacion)
     if (!examenAlumnoId || examenAlumnoId === 0) {
       console.error('❌ ID de examen alumno inválido:', examenAlumnoId);
       return;

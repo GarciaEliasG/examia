@@ -18,7 +18,8 @@
   <!-- Estado de error -->
   <div *ngIf="error && !isLoading" class="empty">
     <p>❌ {{ error }}</p>
-    <button class="btn primary" (click)="cargarEvaluacion()">Reintentar</button>
+    <!-- ✅ CORREGIDO: Cambiar cargarEvaluacion() por iniciarEvaluacion() -->
+    <button class="btn primary" (click)="iniciarEvaluacion(+examenId)">Reintentar</button>
   </div>
 
   <!-- Contenido principal cuando hay datos -->
@@ -34,9 +35,10 @@
       Docente: {{ examenData.docente }} • 
       Materia: {{ examenData.materia }} • 
       Tiempo restante: {{ formatTime(timeLeft) }}
+      <span *ngIf="isSubmitting" style="color: orange;"> • Finalizando...</span>
     </p>
 
-    <form class="questions-form" (ngSubmit)="submitEvaluation()">
+    <form class="questions-form" (ngSubmit)="submitEvaluation()" [class.disabled]="isSubmitting">
       <section *ngFor="let question of questions; let i = index" class="question-card">
         <div class="question-header">
           <p class="q-title">Pregunta {{ i + 1 }} <span class="question-type">({{ getTipoDisplay(question.type) }})</span></p>
@@ -53,7 +55,7 @@
               [name]="'q' + question.id" 
               [value]="option"
               [(ngModel)]="question.respuesta"
-              [disabled]="question.saved">
+              [disabled]="question.saved || isSubmitting">
             <span class="option-text">{{ option }}</span>
           </label>
         </div>
@@ -66,7 +68,7 @@
             [id]="'q' + question.id" 
             [name]="'q' + question.id" 
             [(ngModel)]="question.respuesta"
-            [disabled]="question.saved"
+            [disabled]="question.saved || isSubmitting"
             placeholder="Escribe tu respuesta aquí..." 
             required>
         </div>
@@ -78,44 +80,40 @@
             [id]="'q' + question.id" 
             [name]="'q' + question.id" 
             [(ngModel)]="question.respuesta"
-            [disabled]="question.saved"
+            [disabled]="question.saved || isSubmitting"
             placeholder="Desarrolla tu respuesta aquí..." 
             rows="4"
             required></textarea>
         </div>
 
-        <!-- File Upload (Opcional - mantiene compatibilidad) -->
-        <div *ngIf="question.type === 'file'" class="q-options file-upload">
-          <button type="button" class="btn primary small" [disabled]="question.saved">Adjuntar archivo</button>
-          <span class="file-name">{{ question.respuesta || 'Ningún archivo seleccionado.' }}</span>
-          <div class="file-actions" [style.display]="question.respuesta ? 'block' : 'none'">
-            <button type="button" class="btn primary small" (click)="saveAnswer(question)">Guardar cambios</button>
-            <button type="button" class="btn ghost small" (click)="question.respuesta = ''">Cancelar</button>
-          </div>
-        </div>
-
         <div class="q-actions">
-          <button *ngIf="!question.saved && question.respuesta && question.respuesta.toString().trim() !== ''" 
+          <button *ngIf="!question.saved && question.respuesta && question.respuesta.toString().trim() !== '' && !isSubmitting" 
                   type="button" 
                   class="btn ghost small" 
                   (click)="saveAnswer(question)">
             Guardar respuesta
           </button> 
-          <button *ngIf="question.saved" 
+          <button *ngIf="question.saved && !isSubmitting" 
                   type="button" 
                   class="btn ghost small" 
                   (click)="editAnswer(question)">
             Editar respuesta
           </button>
           <span *ngIf="question.saved" class="saved-badge">✅ Guardada</span>
+          <span *ngIf="isSubmitting" class="saved-badge">⏳ Procesando...</span>
         </div>
       </section>
 
       <div class="finish-row">
-        <button type="submit" class="btn primary finish-btn">Finalizar Evaluación</button>
+        <button type="submit" 
+                class="btn primary finish-btn" 
+                [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Finalizando...' : 'Finalizar Evaluación' }}
+        </button>
         <p class="finish-note" *ngIf="questions">
           {{ getQuestionsCount() }} pregunta{{ getQuestionsCount() !== 1 ? 's' : '' }} en total • 
           {{ getSavedQuestionsCount() }} guardada{{ getSavedQuestionsCount() !== 1 ? 's' : '' }}
+          <span *ngIf="isSubmitting" style="color: orange;"> • La corrección automática iniciará en segundos</span>
         </p>
       </div>
     </form>
@@ -155,7 +153,7 @@
     <div class="modal-card">
       <div class="modal-icon" style="color:#1a7f37; font-size:32px;">✅</div>
       <h3>¡Evaluación Finalizada con Éxito!</h3>
-      <p>Tu evaluación ha sido guardada y enviada al docente para su corrección. Puedes consultar el estado en "Mis evaluaciones".</p>
+      <p>Tu evaluación ha sido guardada y enviada para corrección automática con IA. Puedes consultar los resultados en "Mis evaluaciones" en unos minutos.</p>
       <div class="modal-actions">
         <button class="btn primary full-width" (click)="returnToPanel()">Volver a Evaluaciones</button>
       </div>

@@ -29,7 +29,7 @@ export class ExamenAlumnoService {
   // Iniciar evaluación
   iniciarEvaluacion(examenId: number): Observable<{examen_alumno_id: number, preguntas: Pregunta[]}> {
     return this.http.post<{examen_alumno_id: number, preguntas: Pregunta[]}>(
-      `${this.apiUrl}/alumno/examen/${examenId}/iniciar`, 
+      `${this.apiUrl}/alumno/examen/${examenId}/iniciar/`, 
       {}
     );
   }
@@ -37,33 +37,45 @@ export class ExamenAlumnoService {
   // Guardar respuesta individual
   guardarRespuesta(respuesta: Partial<RespuestaAlumno>): Observable<RespuestaAlumno> {
     return this.http.post<RespuestaAlumno>(
-      `${this.apiUrl}/alumno/respuestas/guardar`, 
+      `${this.apiUrl}/alumno/respuestas/guardar/`, 
       respuesta
     );
   }
 
   // Finalizar evaluación
-  finalizarEvaluacion(examenAlumnoId: number): Observable<ExamenAlumno> {
-    return this.http.post<ExamenAlumno>(
-      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/finalizar`, 
+  finalizarEvaluacion(examenAlumnoId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/finalizar/`, 
       {}
     );
   }
 
-  // Obtener envío (respuestas guardadas)
-  getEnvioDetalle(examenAlumnoId: number): Observable<{examen: any, respuestas: RespuestaAlumno[]}> {
-    return this.http.get<{examen: any, respuestas: RespuestaAlumno[]}>(
-      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/envio`
+  // Forzar corrección automática
+  corregirEvaluacionAuto(examenAlumnoId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/corregir-auto/`, 
+      {}
+    );
+  }
+
+  // Obtener envío
+  getEnvioDetalle(examenAlumnoId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/envio/`
     );
   }
 
   // Obtener resultado del examen
   getResultadoExamen(examenAlumnoId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenAlumnoId}/resultado`);
+    return this.http.get<any>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/resultado/`
+    );
   }
 
-  // Para la segunda parte con IA
+  // Retroalimentación
   getRetroalimentacionExamen(examenAlumnoId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/alumno/examen/${examenAlumnoId}/retroalimentacion`);
+    return this.http.get<any>(
+      `${this.apiUrl}/alumno/examen/${examenAlumnoId}/retroalimentacion/`
+    );
   }
 }

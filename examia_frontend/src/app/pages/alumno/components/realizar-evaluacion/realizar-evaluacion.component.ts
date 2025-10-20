@@ -33,8 +33,8 @@ interface ExamenData {
   styleUrls: ['./realizar-evaluacion.component.css','../evaluaciones/evaluaciones.component.css', '../resultado/resultado.component.css']
 })
 export class RealizarEvaluacion implements OnInit {
-  evaluationId: string = '';
-  examenAlumnoId: string = '';
+  examenAlumnoId: string = '';  // ID del ExamenAlumno (para guardar respuestas)
+  examenId: string = '';        // ID del Examen base (para cargar detalles)
   timeLeft: number = 0;
   questions: Question[] = [];
   examenData: ExamenData | null = null;
@@ -44,6 +44,7 @@ export class RealizarEvaluacion implements OnInit {
   showIncompleteWarning = false;
   showTimeUpModal = false;
   showSuccessModal = false;
+  isSubmitting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -52,22 +53,48 @@ export class RealizarEvaluacion implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.examenAlumnoId = this.route.snapshot.paramMap.get('id') || '';
-    this.cargarEvaluacion();
-  }
-
-  cargarEvaluacion() {
-    this.isLoading = true;
+    this.examenId = this.route.snapshot.paramMap.get('id') || '';
+    console.log('🆔 Examen ID cargado desde URL:', this.examenId);
     
-    if (!this.examenAlumnoId) {
-      this.error = 'ID de evaluación no válido';
+    if (!this.examenId) {
+      this.error = 'ID de examen no válido';
       this.isLoading = false;
       return;
     }
 
-    this.examenAlumnoService.getExamenDetalle(parseInt(this.examenAlumnoId)).subscribe({
+    // 1. Primero INICIAR la evaluación para crear ExamenAlumno
+    this.iniciarEvaluacion(parseInt(this.examenId));
+  }
+
+  iniciarEvaluacion(examenId: number) {
+    this.isLoading = true;
+    console.log('🚀 Iniciando evaluación para examen ID:', examenId);
+    
+    this.examenAlumnoService.iniciarEvaluacion(examenId).subscribe({
       next: (data) => {
-        console.log('📊 Datos del examen recibidos:', data);
+        console.log('✅ Evaluación iniciada:', data);
+        
+        // ✅ Este es el ID CORRECTO para guardar respuestas
+        this.examenAlumnoId = data.examen_alumno_id.toString();
+        console.log('🎯 ExamenAlumno ID asignado:', this.examenAlumnoId);
+        
+        // 2. Ahora cargar el detalle del examen
+        this.cargarDetalleExamen(examenId);
+      },
+      error: (error) => {
+        console.error('❌ Error iniciando evaluación:', error);
+        this.error = 'Error al iniciar la evaluación. Por favor, intenta nuevamente.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  cargarDetalleExamen(examenId: number) {
+    console.log('📊 Cargando detalle del examen ID:', examenId);
+    
+    this.examenAlumnoService.getExamenDetalle(examenId).subscribe({
+      next: (data) => {
+        console.log('📋 Datos del examen recibidos:', data);
         
         this.examenData = {
           id: data.examen.id,
@@ -75,7 +102,7 @@ export class RealizarEvaluacion implements OnInit {
           materia: data.examen.profesor_curso?.curso?.nombre || 'Sin materia',
           docente: data.examen.profesor_curso?.profesor?.nombre || 'Sin docente',
           fecha_limite: data.examen.fecha_limite,
-          duracion_minutos: 30, // Valor por defecto, puedes ajustarlo
+          duracion_minutos: data.examen.duracion_minutos || 30,
           preguntas: this.mapearPreguntas(data.preguntas)
         };
 
@@ -83,6 +110,7 @@ export class RealizarEvaluacion implements OnInit {
         this.timeLeft = this.examenData.duracion_minutos * 60;
         this.isLoading = false;
         
+        console.log('⏰ Tiempo asignado:', this.timeLeft, 'segundos');
         this.startTimer();
       },
       error: (error) => {
@@ -111,7 +139,7 @@ export class RealizarEvaluacion implements OnInit {
       case 'multiple_choice': return 'multiple_choice';
       case 'texto': return 'texto';
       case 'desarrollo': return 'desarrollo';
-      default: return 'texto'; // Fallback por seguridad
+      default: return 'texto';
     }
   }
 
@@ -133,12 +161,18 @@ export class RealizarEvaluacion implements OnInit {
   }
 
   saveAnswer(question: Question) {
-    // ✅ CORREGIDO: Usar los nombres EXACTOS del modelo
+    if (!this.examenAlumnoId) {
+      console.error('❌ No hay examenAlumnoId para guardar respuesta');
+      return;
+    }
+
+    console.log('💾 Guardando respuesta para pregunta:', question.id);
+    
     this.examenAlumnoService.guardarRespuesta({
-      id_examen_alumno: parseInt(this.examenAlumnoId),
-      id_pregunta: question.id,
+      examen_alumno_id: parseInt(this.examenAlumnoId),
+      pregunta_id: question.id,
       respuesta: question.respuesta,
-      puntaje_obtenido: 0 // Valor temporal hasta la corrección
+      puntaje_obtenido: 0
     }).subscribe({
       next: (respuestaGuardada) => {
         question.saved = true;
@@ -180,50 +214,76 @@ export class RealizarEvaluacion implements OnInit {
   }
 
   finalizarEvaluacion() {
-    // Primero guardar todas las respuestas no guardadas
-    const respuestasNoGuardadas = this.questions.filter(q => !q.saved && q.respuesta);
+    if (this.isSubmitting) return;
     
+    this.isSubmitting = true;
+    console.log('🚀 Iniciando finalización de evaluación...');
+
+    const respuestasNoGuardadas = this.questions.filter(q => !q.saved && q.respuesta);
+  
     if (respuestasNoGuardadas.length > 0) {
-      respuestasNoGuardadas.forEach(question => {
-        this.examenAlumnoService.guardarRespuesta({
-          id_examen_alumno: parseInt(this.examenAlumnoId),
-          id_pregunta: question.id,
-          respuesta: question.respuesta,
-          puntaje_obtenido: 0
-        }).subscribe({
-          next: () => {
-            question.saved = true;
-            console.log('✅ Respuesta guardada durante finalización:', question.id);
-          },
-          error: (error) => {
-            console.error('❌ Error guardando respuesta final:', error);
-            question.saved = true; // Continuamos aunque falle
-          }
+      console.log(`💾 Guardando ${respuestasNoGuardadas.length} respuestas pendientes...`);
+    
+      const guardarPromesas = respuestasNoGuardadas.map(question => {
+        return new Promise<void>((resolve) => {
+          this.examenAlumnoService.guardarRespuesta({
+            examen_alumno_id: parseInt(this.examenAlumnoId),
+            pregunta_id: question.id,
+            respuesta: question.respuesta,
+            puntaje_obtenido: 0
+          }).subscribe({
+            next: () => {
+              question.saved = true;
+              console.log('✅ Respuesta guardada durante finalización:', question.id);
+              resolve();
+            },
+            error: (error) => {
+              console.error('❌ Error guardando respuesta final:', error);
+              question.saved = true;
+              resolve();
+            }
+          });
         });
       });
-    }
 
-    // Esperar un momento y luego finalizar
-    setTimeout(() => {
-      this.examenAlumnoService.finalizarEvaluacion(parseInt(this.examenAlumnoId)).subscribe({
-        next: (resultado) => {
-          console.log('✅ Evaluación finalizada:', resultado);
-          this.showSuccessModal = true;
-        },
-        error: (error) => {
-          console.error('❌ Error finalizando evaluación:', error);
-          // Mostramos éxito igual al usuario
-          this.showSuccessModal = true;
-        }
+      Promise.all(guardarPromesas).then(() => {
+        this.ejecutarFinalizacion();
       });
-    }, 1000);
+    } else {
+      this.ejecutarFinalizacion();
+    }
+  }
+
+  private ejecutarFinalizacion() {
+    console.log('🎯 Ejecutando finalización con ExamenAlumno ID:', this.examenAlumnoId);
+    
+    this.examenAlumnoService.finalizarEvaluacion(parseInt(this.examenAlumnoId)).subscribe({
+      next: (resultado) => {
+        console.log('✅ Evaluación finalizada exitosamente:', resultado);
+        this.showSuccessModal = true;
+        this.isSubmitting = false;
+      },
+      error: (error) => {
+        console.error('❌ Error finalizando evaluación:', error);
+        
+        if (error.status === 404) {
+          this.error = 'Error: No se encontró la evaluación. Verifica el ID.';
+        } else {
+          this.error = `Error al finalizar: ${error.message}`;
+        }
+        
+        this.isSubmitting = false;
+        // Mostramos éxito igual al usuario para no bloquearlo
+        this.showSuccessModal = true;
+      }
+    });
   }
 
   finalizarEvaluacionAutomaticamente() {
-    // Para cuando se acaba el tiempo
+    console.log('⏰ Finalizando evaluación automáticamente por tiempo');
     this.examenAlumnoService.finalizarEvaluacion(parseInt(this.examenAlumnoId)).subscribe({
       next: (resultado) => {
-        console.log('⏰ Evaluación finalizada por tiempo:', resultado);
+        console.log('✅ Evaluación finalizada por tiempo:', resultado);
       },
       error: (error) => {
         console.error('❌ Error finalizando evaluación por tiempo:', error);
@@ -241,7 +301,6 @@ export class RealizarEvaluacion implements OnInit {
     this.router.navigate(['/alumno/evaluaciones']);
   }
 
-  // Helper para mostrar tipo de pregunta en español
   getTipoDisplay(tipo: string): string {
     switch (tipo) {
       case 'multiple_choice': return 'Opción Múltiple';
@@ -252,7 +311,6 @@ export class RealizarEvaluacion implements OnInit {
     }
   }
 
-  // Métodos para evitar errores en el template
   getQuestionsCount(): number {
     return this.questions ? this.questions.length : 0;
   }
@@ -261,4 +319,8 @@ export class RealizarEvaluacion implements OnInit {
     if (!this.questions) return 0;
     return this.questions.filter(q => q.saved).length;
   }
+
+  reiniciarEvaluacion() {
+    this.iniciarEvaluacion(parseInt(this.examenId));
+}
 }

@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +30,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Cargar variables del archivo .env desde la raíz del proyecto
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')  # Busca el .env en la raíz del proyecto
+
+# Ahora puedes usar las variables
+SECRET_KEY = os.getenv('SECRET_KEY', 'clave_por_defecto')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', 'hf_tu_token_aqui')
+
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,6 +1,6 @@
 export interface ExamenAlumno {
   id_examen: number;           // ID del examen base
-  id_examen_alumno: number | null;    // ID de la relación alumno-examen (null para activos)
+  examen_alumno_id: number | null;    // ID de la relación alumno-examen (null para activos)
   titulo: string;
   descripcion: string;
   materia: string;

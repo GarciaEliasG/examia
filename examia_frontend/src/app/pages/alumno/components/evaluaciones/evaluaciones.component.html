@@ -96,7 +96,7 @@
     <article *ngFor="let eval of filteredEvaluaciones" class="eval-card">
       <!-- DEBUG: Mostrar IDs (puedes remover esto después) -->
       <div style="position: absolute; top: 5px; right: 5px; background: #f0f0f0; padding: 2px 6px; font-size: 10px; border-radius: 4px;">
-        ID: {{eval.id_examen_alumno}} | Examen: {{eval.id_examen}} | Estado: {{eval.estado}}
+        ID: {{eval.examen_alumno_id}} | Examen: {{eval.id_examen}} | Estado: {{eval.estado}}
       </div>
       
       <div class="left">
@@ -148,21 +148,21 @@
         <!-- Pendiente (Entregada) -->
         <button *ngIf="eval.estado === 'pendiente'" 
                 class="btn ghost" 
-                (click)="verEnvio(eval.id_examen_alumno)">
+                (click)="verEnvio(eval.examen_alumno_id)">
           Ver envío
         </button>
 
         <!-- Finalizada (pero no corregida) -->
         <button *ngIf="eval.estado === 'finalizado'" 
                 class="btn ghost" 
-                (click)="verEnvio(eval.id_examen_alumno)">
+                (click)="verEnvio(eval.examen_alumno_id)">
           Ver envío
         </button>
 
         <!-- Corregida -->
-        <button *ngIf="eval.estado === 'corregido'" 
+        <button *ngIf="eval.estado === 'corregido' && tieneRetroalimentacion(eval)" 
                 class="btn primary" 
-                (click)="verResultado(eval.id_examen_alumno)">
+                (click)="verResultado(eval)">
           Ver resultado
         </button>
         <button *ngIf="eval.estado === 'corregido' && tieneRetroalimentacion(eval)" 

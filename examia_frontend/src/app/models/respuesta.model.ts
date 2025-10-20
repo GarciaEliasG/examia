@@ -2,7 +2,7 @@ import { Pregunta } from './pregunta.model';
 
 export class Respuesta {
   id_respuesta!: number;
-  id_pregunta!: number;
+  pregunta_id!: number;
   contenido!: string;
   calificacion!: number;
 

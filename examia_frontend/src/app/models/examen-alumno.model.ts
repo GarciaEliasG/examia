@@ -4,8 +4,8 @@ import { Examen } from './examen.model';
 import { RespuestaAlumno } from './respuesta-alumno.model';
 
 export class ExamenAlumno {
-  // ✅ CAMPOS EXISTENTES - SE MANTIENEN EXACTAMENTE IGUAL
-  id_examen_alumno!: number;
+  // ✅ CORREGIDO: Campos REALES que vienen del backend
+  id!: number;                    // ← ID principal (PK de Django)
   id_alumno!: number;
   id_examen!: number;
   fecha_inicio!: Date;
@@ -14,38 +14,36 @@ export class ExamenAlumno {
   retroalimentacion!: string;
   estado!: 'pendiente' | 'en_progreso' | 'finalizado' | 'corregido' | 'activo';
   tiempo_utilizado!: number;
-  intento_numero!: number;
 
-  // Propiedades para la vista
+  // Propiedades para la vista (vienen del serializer personalizado)
   titulo!: string;
   materia!: string;
   docente!: string;
   fecha_limite!: string;
   calificacion?: number;
   descripcion?: string;
-  preguntas_count?: number;
-  duracion_minutos?: number;
-  intento_unico?: boolean;
+
+  // ✅ Getters para compatibilidad con código existente
+  get examen_alumno_id(): number {
+    return this.id;
+  }
+  
+  get id_examen_alumno(): number {
+    return this.id;
+  }
 
   alumno?: Alumno;
   examen?: Examen;
   respuestas?: RespuestaAlumno[];
-
-  // ✅ NUEVOS CAMPOS OPCIONALES PARA COMPATIBILIDAD CON BACKEND ACTUALIZADO
-  id?: number;                          // Para compatibilidad con código existente
-  id_examen_base?: number;              // Alias para id_examen (si es necesario)
-  examen_alumno_id?: number;            // Alias para id_examen_alumno (compatibilidad)
 }
 
-// ✅ FUNCIONES HELPER PARA MANTENER COMPATIBILIDAD
+// ✅ FUNCIONES HELPER CORREGIDAS
 export function getIdExamen(evaluacion: ExamenAlumno): number {
-  // Prioridad: id_examen -> id_examen_base -> id (para compatibilidad)
-  return evaluacion.id_examen ?? evaluacion.id_examen_base ?? evaluacion.id ?? 0;
+  return evaluacion.id_examen ?? 0;
 }
 
 export function getIdExamenAlumno(evaluacion: ExamenAlumno): number {
-  // Prioridad: id_examen_alumno -> examen_alumno_id -> id (para compatibilidad)
-  return evaluacion.id_examen_alumno ?? evaluacion.examen_alumno_id ?? evaluacion.id ?? 0;
+  return evaluacion.id ?? 0;  // ← Usar 'id' que es la PK real
 }
 
 export function getEstadoDisplay(estado: string): string {

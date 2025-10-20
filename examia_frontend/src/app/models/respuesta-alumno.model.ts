@@ -4,8 +4,8 @@ import { Pregunta } from './pregunta.model';
 
 export class RespuestaAlumno {
   id_respuesta_alumno!: number;
-  id_examen_alumno!: number;
-  id_pregunta!: number;
+  examen_alumno_id!: number;
+  pregunta_id!: number;
   respuesta!: string;
   respuesta_opcion?: number;
   archivo_url?: string;

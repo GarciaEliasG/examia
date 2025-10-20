@@ -16,7 +16,7 @@ interface Feedback {
 @Component({
   selector: 'app-retroalimentacion',
   standalone: true,
-  imports: [CommonModule,NgIf],
+  imports: [CommonModule, NgIf],
   templateUrl: './retroalimentacion.component.html',
   styleUrls: ['./retroalimentacion.component.css', '../evaluaciones/evaluaciones.component.css', '../resultado/resultado.component.css']
 })

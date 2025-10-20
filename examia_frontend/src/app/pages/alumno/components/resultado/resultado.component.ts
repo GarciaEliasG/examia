@@ -1,4 +1,3 @@
-// components/resultado/resultado.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, NgIf } from '@angular/common';
@@ -31,7 +30,7 @@ interface ExamenResultado {
 @Component({
   selector: 'app-resultado',
   standalone: true,
-  imports: [CommonModule,NgIf],
+  imports: [CommonModule, NgIf],
   templateUrl: './resultado.component.html',
   styleUrls: ['./resultado.component.css']
 })
@@ -85,7 +84,7 @@ export class Resultado implements OnInit {
 
   viewFeedback() {
     if (this.examen) {
-      this.router.navigate(['/alumno/retroalimentacion', this.examen.id]);
+      this.router.navigate(['/alumno/retroalimentacion', this.evaluationId]);  // ✅ Usar evaluationId
     }
   }
 
