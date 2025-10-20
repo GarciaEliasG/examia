@@ -1,0 +1,176 @@
+:root{
+  --bg:#f6f3ee; --surface:#fff; --ink:#0f172a; --muted:#6b7280;
+  --primary:#0b57d0; --primary-600:#0a46a9; --border:#e5e7eb;
+  --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+
+/* Topbar */
+
+.topbar{height:64px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; background:transparent}
+.logo{height:40px}
+.icon-btn{border:1px solid var(--border); background:var(--surface); width:44px;height:44px;
+  border-radius:50%; display:grid; place-items:center; box-shadow:var(--shadow); cursor:pointer}
+.icon-btn svg{width:22px; height:22px; fill:var(--ink)}
+.divider{height:1px; background:#e7e2dc}
+
+/* Layout principal */
+.container{max-width:900px; margin:0 auto; padding:16px 16px 48px; position:relative}
+.back{position:absolute; left:8px; top:12px; width:44px;height:44px; display:grid;place-items:center;
+  border:1px solid var(--border); border-radius:50%; background:var(--surface); box-shadow:var(--shadow)}
+.back svg{width:22px;height:22px; fill:var(--ink)}
+
+.title{
+  text-align:center; font-weight:800;
+  font-size:clamp(1.4rem,1.2rem + 1.2vw,2rem);
+  margin:10px 0 18px;
+}
+
+/* Form card */
+.form-grid{display:grid; grid-template-columns:1fr; gap:16px}
+.form-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:20px; box-shadow:var(--shadow);
+}
+
+/* Campos estilo Google Forms */
+.field{display:grid; gap:8px; margin-bottom:18px}
+label{font-weight:700; color:#0b1b31}
+input[type="text"], input[type="date"], input[type="time"], select, textarea{
+  width:100%; border:1px solid var(--border); border-radius:12px; background:#f9fafb;
+  padding:12px 14px; font-size:1rem; outline:none; transition:border .15s, box-shadow .15s
+}
+input:focus, textarea:focus, select:focus{
+  border-color:#c8d1ff; box-shadow:0 0 0 4px rgba(11,87,208,.12); background:#fff
+}
+textarea{resize:vertical}
+
+/* Duración: fecha + hora a la derecha */
+.inline{display:grid; grid-template-columns:1fr minmax(240px,280px); gap:16px; align-items:start}
+.control{display:grid; gap:6px}
+.control small{color:var(--muted)}
+
+.time-card{
+  background:#f7f8ff; border:1px solid #dfe7ff; border-radius:16px; padding:14px
+}
+.control-label{font-size:.9rem; font-weight:700; color:#12213a}
+.time-card input[type="time"]{
+  font-size:1.2rem; text-align:center; background:#fff; border:1px solid #dfe7ff
+}
+.time-footer{display:flex; justify-content:flex-end; gap:10px; margin-top:8px}
+.text-btn{background:none; border:none; color:var(--muted); font-weight:700; cursor:pointer}
+.text-btn.ok{color:var(--primary)}
+
+/* Select “Agregar preguntas” */
+.select-wrap{position:relative}
+select{appearance:none; background:#fff url("data:image/svg+xml;utf8,<svg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center}
+
+/* Botón crear */
+.actions{display:flex; justify-content:center; margin-top:10px}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px;
+  border-radius:999px; border:1px solid var(--primary-600); cursor:pointer; font-weight:800}
+.btn.primary{background:var(--primary); color:#fff}
+.btn.primary:hover{filter:brightness(1.05)}
+/* Responsive */
+@media (max-width:720px){
+  .inline{grid-template-columns:1fr}
+  .container{padding-top:56px}
+  .back{top:8px; left:8px}
+}
+
+/* Preguntas */
+.questions{
+  padding:12px;
+}
+.q-row{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 6px; border-radius:8px;
+}
+.q-row:hover{background:#f6f7fb}
+.q-row input{width:auto}
+
+.card{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+.card.soft{background:#fafbff}
+
+.chip-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px;
+  background:#eef4ff; border:1px solid #dbe5ff;
+  color:#0b57d0; font-weight:700; cursor:pointer;
+}
+.plus{display:inline-block; width:18px; height:18px; line-height:18px; text-align:center; font-weight:800}
+
+/* encabezado con label a la izquierda y botón a la derecha */
+.field-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+/* versión más chica del chip */
+.chip-btn--small{
+  padding:6px 10px;     /* más cortito */
+  font-size:.9rem;      /* letra un toque más chica */
+  border-radius:999px;
+  white-space:nowrap;   /* evita que se corte el texto */
+}
+
+/* ícono + más chico dentro del botón chico */
+.chip-btn--small .plus{
+  width:14px;
+  height:22px;
+  line-height:22px;
+}
+
+/* Alerts */
+.alerts{margin:0 auto 16px; max-width:980px}
+.alert{
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-left:4px solid #f59e0b; /* amber */
+  background:#fffdfa;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  margin-bottom:10px;
+}
+.alert.info{border-left-color:#0ea5e9; background:#f0f9ff}
+.alert.warn{border-left-color:#f59e0b; background:#fff7ed}
+.muted{color:var(--muted)}
+
+/* Variantes y animación para alerts en Crear Evaluación */
+.alert { position: relative; animation: evaAlertIn .22s ease-out both; }
+.alert.success { border-left-color:#10b981; background:#ecfdf5; }
+.alert.error   { border-left-color:#ef4444; background:#fef2f2; }
+@keyframes evaAlertIn { from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:translateY(0)} }
+
+/* Nuevo patrón de simetría: Botón Volver (Back) y Título Centrado */
+.header-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  margin-bottom:18px; /* Espacio debajo del título */
+}
+
+.header-row .icon-btn.back,
+.header-row .back { /* Para los que usan la clase .back simple */
+  position:absolute; /* Lo posiciona absolutamente a la izquierda */
+  left:0;
+}
+
+.header-row .title{
+  text-align:center;
+  flex:1; /* Permite que el título ocupe el espacio central */
+  margin:0; /* Elimina márgenes extra */
+}

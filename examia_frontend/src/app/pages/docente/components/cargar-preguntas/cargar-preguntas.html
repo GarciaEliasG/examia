@@ -1,0 +1,119 @@
+<main class="wrap">
+  <a class="back" routerLink="/docente/crear-evaluacion" aria-label="Volver">
+    <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
+  </a>
+
+  <h1 class="title">Cargar preguntas</h1>
+
+  <div class="alerts" id="alert-container">
+    <div *ngFor="let alert of alertas" class="alert" [ngClass]="'alert--' + alert.type">
+      <div class="alert__content">
+        <div class="alert__title">{{ alert.title }}</div>
+        <div class="alert__desc">{{ alert.desc }}</div>
+      </div>
+      <button class="alert__close" (click)="closeAlert(alert.id)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="field">
+        <label for="titulo">Título</label>
+        <input id="titulo" type="text" placeholder="Ej.: Funciones Polinomicas – Unidad 2" [(ngModel)]="tituloBanco">
+      </div>
+    </div>
+  </section>
+
+  <section id="questions" class="q-list">
+    <article *ngFor="let p of preguntas; let i = index" class="q-card">
+      <div class="q-head">
+        <div class="q-label">Pregunta {{ i + 1 }}</div>
+        <div class="q-actions">
+          <button class="icon" title="Duplicar" type="button" (click)="duplicarPregunta(p, i)">
+            <svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/><path d="M5 5h10v2H7v8H5z"/></svg>
+          </button>
+          <button class="icon danger" title="Eliminar" type="button" (click)="eliminarPregunta(p)">
+            <svg viewBox="0 0 24 24"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-1 0v12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="q-grid">
+        <div class="field">
+          <label [for]="'qtitle-' + p.id">Título de la pregunta</label>
+          <input [id]="'qtitle-' + p.id" type="text" placeholder="Escribí la consigna..." [(ngModel)]="p.titulo">
+        </div>
+        <div class="field">
+          <label [for]="'qtype-' + p.id">Tipo de pregunta</label>
+          <div class="select-wrap">
+            <select [id]="'qtype-' + p.id" [(ngModel)]="p.tipo">
+              <option *ngFor="let t of tiposPregunta" [value]="t.value">{{ t.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-body" [ngSwitch]="p.tipo">
+        
+        <div *ngSwitchCase="'choice'" class="opt-box">
+          <div class="opt-list">
+            <div *ngFor="let opt of p.opciones; let j = index" class="opt-row">
+              <div class="opt-bullet"></div>
+              <input type="text" placeholder="Opción {{ j + 1 }}" [(ngModel)]="opt.texto">
+              <button class="icon tiny danger" title="Eliminar opción" type="button" (click)="eliminarOpcion(p, opt)">
+                <svg viewBox="0 0 24 24"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-1 0v12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V7"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="text-btn" (click)="agregarOpcion(p)">
+            <span class="plus">+</span> Agregar opción
+          </button>
+        </div>
+
+        <div *ngSwitchCase="'short'">
+          <input type="text" class="answer short" placeholder="Respuesta corta" disabled>
+        </div>
+
+        <div *ngSwitchCase="'para'">
+          <textarea class="answer para" rows="3" placeholder="Párrafo" disabled></textarea>
+        </div>
+      </div>
+
+      <div class="q-side">
+        <button class="side-btn" title="Imagen" (click)="imgInput.click()">...</button>
+        <button class="side-btn" title="Archivo" (click)="fileInput.click()">...</button>
+        <button class="side-btn" title="Video" (click)="videoInput.click()">...</button>
+        
+        <input #imgInput class="hidden-input" type="file" accept="image/*" (change)="onFileSelected($event, p, 'img')">
+        <input #fileInput class="hidden-input" type="file" (change)="onFileSelected($event, p, 'file')">
+        <input #videoInput class="hidden-input" type="file" accept="video/*" (change)="onFileSelected($event, p, 'video')">
+      </div>
+
+      <div class="q-attachments">
+        <div *ngFor="let adj of p.adjuntos" class="attach">
+          <img *ngIf="adj.tipo === 'img'" [src]="adj.url" alt="img" style="width: 40px; height: 40px; object-fit: cover;">
+          <div *ngIf="adj.tipo === 'video'" class="muted">🎬 Video</div>
+          <div *ngIf="adj.tipo === 'file'" class="muted">📎 Archivo</div>
+          
+          <div>{{ adj.nombre }}</div>
+          
+          <button class="rm" title="Quitar" (click)="eliminarAdjunto(p, adj)">✕</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <div class="add-bar">
+    <button id="addQuestion" class="chip-btn" (click)="agregarPregunta()">
+      <span class="plus">+</span> Agregar pregunta
+    </button>
+  </div>
+    
+  <div class="add-bar">
+    <button id="saveAndBack" type="button" class="chip-btn save-btn" (click)="guardarYVolver()">
+      Guardar y volver
+    </button>
+  </div>
+</main>

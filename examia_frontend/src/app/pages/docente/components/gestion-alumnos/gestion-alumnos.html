@@ -1,0 +1,64 @@
+<main class="wrap">
+  <div class="toolbar">
+    <select [(ngModel)]="cursoSeleccionadoId" (change)="filtrarAlumnos()">
+      <option [value]="0">Todos los cursos</option>
+      <option *ngFor="let curso of cursos" [value]="curso.id">
+        {{ curso.nombre }}
+      </option>
+    </select>
+    <div class="actions">
+      <button class="btn" (click)="abrirModal('curso')">Nuevo curso</button>
+      <button class="btn" (click)="abrirModal('agregar')">Agregar alumno</button>
+      <button class="btn" (click)="abrirModal('importar')">Importar</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th *ngFor="let titulo of titulosEvaluaciones">{{ titulo }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let alumno of alumnosFiltrados">
+          <td>{{ alumno.nombre }}</td>
+          <td *ngFor="let titulo of titulosEvaluaciones">
+            {{ alumno.evaluaciones[titulo] || '-' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="alumnosFiltrados.length === 0" class="empty-state">
+      No hay alumnos para mostrar.
+    </div>
+  </div>
+
+  <div class="tools">
+    <div class="tool">
+      <h4>Exportar Notas</h4>
+      <select #selEval>
+        <option *ngFor="let titulo of titulosEvaluaciones" [value]="titulo">{{ titulo }}</option>
+      </select>
+      <button class="btn" (click)="exportarEvaluacion(selEval.value)">Exportar</button>
+    </div>
+  </div>
+</main>
+
+<div id="cursoModal" class="xmodal" [class.is-hidden]="!modalCursoVisible">
+  <div class="xmodal__backdrop" (click)="cerrarModal('curso')"></div>
+  <div class="xmodal__card">
+    <button class="xmodal__close" (click)="cerrarModal('curso')">✕</button>
+    <h3>Nuevo curso</h3>
+    <input #nombreCursoInput type="text" placeholder="Nombre del curso">
+    <div class="xmodal__footer">
+      <button class="btn" (click)="cerrarModal('curso')">Cancelar</button>
+      <button class="btn primary" (click)="agregarCurso(nombreCursoInput.value)">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" [class.is-shown]="toastVisible">
+  {{ toastMessage }}
+</div>
