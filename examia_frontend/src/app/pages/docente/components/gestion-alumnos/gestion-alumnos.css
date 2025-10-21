@@ -1,0 +1,300 @@
+:root {
+  --text: #1e293b;
+  --bg: #f3eee8;
+  --card: #e5e7eb;
+  --border: #e5e7eb;
+  --shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  --brand: #0f172a;
+}
+
+/* ===== BASE ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f3eee8;
+  border-bottom: 1px solid var(--border); /* ← ESTA LÍNEA CREA LA RAYA INFERIOR */
+  padding: 10px 20px;
+}
+
+.logo{height:40px}
+.top-actions{display:flex; gap:10px; align-items:center}
+.icon-btn{border:1px solid var(--border); background:var(--surface); width:44px; height:44px; border-radius:50%; display:grid; place-items:center; box-shadow:var(--shadow); cursor:pointer}
+.icon-btn svg{width:22px; height:22px; fill:var(--ink)}
+.divider{height:1px; background:#e7e2dc}
+
+/* Layout */
+.wrap{max-width:980px; margin:0 auto; padding:18px 16px 80px}
+
+.icon-btn.profile {
+  border: none; background: #fff; border-radius: 50%;
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow); cursor: pointer;
+}
+
+/* ===== BOTÓN VOLVER ===== */
+.back-btn {
+  position: absolute;
+  top: 95px;
+  left: 40px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.back-btn:hover { background: #f9fafb; }
+
+/* ===== TÍTULO ===== */
+.title {
+  text-align: center;
+  font-weight: 800;
+  color: var(--brand);
+  /* margin-top: 60px;
+  margin-bottom: 20px; */
+  font-size:clamp(1.4rem,1.2rem + 1.2vw,2rem);
+  margin:10px 0 18px; 
+}
+
+/* ===== CONTENIDO ===== */
+.wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+.materia-nombre{
+  color:#0284c7;
+  font-weight:800;
+  font-size:2rem; 
+  line-height:1.2;
+}
+
+/* ===== BOTONES ===== */
+.actions-top.clean {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+.btn.small {
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  background: #e0e7ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn.small:hover { background: #dbeafe; }
+
+/* ===== TABLA ===== */
+.tabla-contenedor {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 10px 20px;
+  overflow-x: auto;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  padding: 10px 15px;
+  text-align: center;
+  border-bottom: 1px solid #cbd5e1;
+}
+th { font-weight: 700; border-bottom: 2px solid #64748b; }
+td:first-child { text-align: left; }
+
+/* ===== ALERTAS ===== */
+.alerts { margin: 14px 0; }
+.alert {
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.alert.success { background: #dcfce7; border-left: 5px solid #22c55e; }
+.alert.info { background: #e0f2fe; border-left: 5px solid #0ea5e9; }
+.alert.error { background: #fee2e2; border-left: 5px solid #ef4444; }
+
+
+/* Fila del select + botón agregar */
+.field-curso .course-row{ display:flex; gap:8px; align-items:center; }
+.btn.ghost{ background:#f4f7ff; border:1px solid #cfe0ff; color:#0f172a; }
+
+/* Badge del código del curso */
+.badge-code{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:3px 8px; border-radius:8px;
+  border:1px dashed #94a3b8; background:#fff; color:#0f172a;
+  font-weight:800; font-family:ui-monospace, Menlo, Consolas, monospace;
+}
+.muted{ color:#64748b; }
+
+
+/* ===== Alertas lindas / Toasts ===== */
+.toast-area { position: relative; z-index: 10; }
+.toast-area .toast {
+  display: grid; gap: 4px;
+  padding: 10px 14px; margin: 8px 0;
+  border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  border: 1px solid #e5e7eb;
+  animation: toast-in .22s ease-out;
+}
+.toast strong { font-weight: 800; }
+.toast p { margin: 0; color: #475569; }
+
+.toast.success { background:#ecfdf5; border-left:6px solid #22c55e; }
+.toast.info    { background:#eef6ff; border-left:6px solid #0ea5e9; }
+.toast.warn    { background:#fff7ed; border-left:6px solid #f59e0b; }
+.toast.error   { background:#fef2f2; border-left:6px solid #ef4444; }
+
+.toast .close {
+  margin-left:auto; background:transparent; border:0; cursor:pointer;
+  color:#334155; font-weight:700; padding:0 6px;
+}
+
+@keyframes toast-in {
+  from { opacity:0; transform: translateY(-4px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ===== Modal + Curso  ===== */
+
+.xmodal{
+  display:flex;
+  align-items:center;   /* centra vertical */
+  justify-content:center; /* centra horizontal */
+}
+
+
+.xmodal.is-hidden { display: none; }
+.xmodal { position: fixed; inset: 0; z-index: 80; }
+.xmodal__backdrop{
+  position: absolute; inset: 0;
+  background: rgba(15,23,42,.35);
+  backdrop-filter: blur(2px);
+  animation: xfade .18s ease-out;
+}
+.xmodal__card{
+  position: relative; z-index: 1;
+  width: min(560px, 92vw);
+  margin: 12vh auto 0;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 80px rgba(0,0,0,.18);
+  padding: 18px 18px 16px;
+  animation: xpop .18s ease-out;
+}
+.xmodal__close{
+  position: absolute; top: 10px; right: 10px;
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid #e5e7eb; background: #fff; cursor: pointer;
+}
+.xmodal__close:hover{ background:#f8fafc; }
+
+.xmodal__header{
+  display:flex;
+  align-items:center;       /* mantiene el centrado base */
+  gap:12px;
+  margin-bottom:6px;
+  padding-top:6px;          /* lo baja un poquito */
+}
+
+
+.xmodal__icon{
+  width:40px; height:40px; border-radius:12px;
+  display:grid; place-items:center;
+  background:#eef4ff; border:1px solid #dbe5ff;
+  font-size:20px;
+}
+
+.xmodal__subtitle{
+  position: relative;
+  top: -15px;      /* probá -4px / -6px / -8px hasta que te guste */
+  line-height: 1.25;
+}
+
+
+.xmodal__label{ display:block; margin:10px 0 6px; font-weight:700; }
+.xmodal__input{
+  width:100%; padding:12px 14px; border-radius:12px;
+  border:1px solid #cbd5e1; outline:none; font-size:1rem;
+  background:#f8fafc;
+}
+.xmodal__input:focus{ border-color:#93c5fd; box-shadow:0 0 0 3px rgba(147,197,253,.35); }
+
+.xmodal__actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+
+/* Botones base (coherentes con tu UI) */
+.btn{ padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; }
+.btn.primary{ background:#0b57d0; color:#fff; border:1px solid #0a46a9; }
+.btn.primary:hover{ filter:brightness(1.05); }
+.btn.ghost{ background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0; }
+.btn.ghost:hover{ background:#e2e8f0; }
+
+/* Animaciones */
+@keyframes xpop{ from{ transform:translateY(6px); opacity:0 } to{ transform:translateY(0); opacity:1 } }
+@keyframes xfade{ from{ opacity:0 } to{ opacity:1 } }
+
+/* Colores de notas */
+.nota--good { background:#ecfdf5 !important; color:#065f46; font-weight:700; }
+.nota--mid  { background:#fff7ed !important; color:#92400e; font-weight:700; }
+.nota--bad  { background:#fef2f2 !important; color:#991b1b; font-weight:700; }
+
+/* Fila de promedios */
+tfoot td {
+  font-weight:800;
+  background:#f8fafc;
+  border-top:2px solid #64748b;
+}
+
+/* Selector de evaluación para exportar */
+.eval-tools {
+  display:flex; align-items:center; gap:8px;
+  margin:10px 0 6px;
+}
+.eval-tools select, .eval-tools button {
+  padding:6px 10px; border:1px solid #cbd5e1; border-radius:8px;
+  background:#fff; cursor:pointer;
+}
+.header-row {
+  position: relative;
+  justify-content: center !important;
+}
+
+.header-row .icon-btn.back {
+  position: absolute;
+  left: 0;
+  background-color: #ffffff 
+}
+/* Botón volver */
+.icon-btn.back svg path {
+  fill: #000000;   
+}
+
+

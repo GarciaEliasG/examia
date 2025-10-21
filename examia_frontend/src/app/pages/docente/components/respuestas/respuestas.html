@@ -1,0 +1,37 @@
+<main class="wrap">
+  <div class="header-row">
+    <a routerLink="/docente" class="icon-btn back" aria-label="Volver al panel del docente">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </a>
+    <h1 class="title">Respuestas de alumnos</h1>
+  </div>
+  
+  <div class="toolbar">
+    <input 
+      type="search" 
+      id="buscador" 
+      placeholder="Buscar evaluación..."
+      [(ngModel)]="terminoBusqueda"
+      (input)="render()">
+  </div>
+
+  <section *ngIf="evaluacionesFiltradas.length === 0; else listaResultados" class="empty">
+    <p>No hay evaluaciones que coincidan con la búsqueda.</p>
+  </section>
+
+  <ng-template #listaResultados>
+    <section id="lista">
+      <article *ngFor="let eva of evaluacionesFiltradas" class="card">
+        <div>
+          <h3>{{ eva.titulo }}</h3>
+          <p><strong>Curso:</strong> {{ eva.curso }}</p>
+          <p><strong>Respuestas:</strong> {{ eva.respuestas }}</p>
+        </div>
+        <button class="btn primary" (click)="verCorregir(eva.id)">
+          Ver / Corregir
+        </button>
+      </article>
+    </section>
+  </ng-template>
+  
+</main>

@@ -1,0 +1,71 @@
+<main class="wrap">
+  <div class="toolbar">
+    <input 
+      type="search" 
+      placeholder="Buscar por título..." 
+      [(ngModel)]="terminoBusqueda" 
+      (input)="render()">
+    
+    <select [(ngModel)]="filtroEstado" (change)="render()">
+      <option value="todos">Todos los estados</option>
+      <option value="borrador">Borrador</option>
+      <option value="publicada">Publicada</option>
+    </select>
+    
+    <button class="btn primary" routerLink="/docente/crear-evaluacion">
+      <svg></svg>
+      Nueva evaluación
+    </button>
+  </div>
+
+  <div class="list">
+    <div *ngIf="evaluacionesFiltradas.length === 0; else listaEvaluaciones" class="empty">
+      No se encontraron evaluaciones que coincidan con tu búsqueda.
+    </div>
+
+    <ng-template #listaEvaluaciones>
+      <article *ngFor="let eva of evaluacionesFiltradas" class="card">
+        <div>
+          <h3 class="card__title">
+            {{ eva.titulo }}
+            <span class="badge" [ngClass]="{'ok': eva.estado === 'publicada', 'warn': eva.estado === 'borrador'}">
+              {{ eva.estado }}
+            </span>
+          </h3>
+          <p class="card__meta">
+            <span><strong>Fecha:</strong> {{ eva.fecha }}</span>
+            <span><strong>Preguntas:</strong> {{ eva.preguntas }}</span>
+          </p>
+        </div>
+        <div class="card__actions">
+          <button class="icon-btn" title="Ver" (click)="verEvaluacion(eva)">
+            <svg></svg>
+          </button>
+          <button class="icon-btn" title="Editar" (click)="editarEvaluacion(eva)">
+            <svg></svg>
+          </button>
+          <button class="icon-btn danger" title="Eliminar" (click)="abrirModal(eva)">
+            <svg></svg>
+          </button>
+        </div>
+      </article>
+    </ng-template>
+  </div>
+</main>
+
+<div id="modalDel" class="modal" [class.is-hidden]="!modalVisible" role="dialog" aria-modal="true">
+  <div class="modal__backdrop" (click)="cerrarModal()"></div>
+  <div class="modal__card">
+    <div class="modal__header">
+      <svg></svg>
+      <h3>Confirmar eliminación</h3>
+    </div>
+    <div class="modal__body">
+      <p>¿Estás seguro de que deseas eliminar la evaluación <strong>"{{ evaluacionAEliminar?.titulo }}"</strong>? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn danger" (click)="confirmarEliminacion()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>

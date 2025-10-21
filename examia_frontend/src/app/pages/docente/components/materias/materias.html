@@ -1,0 +1,63 @@
+<main class="wrap">
+  <h1 class="title">Panel de materias</h1>
+
+  <div class="alerts" id="alert-container">
+    <div *ngFor="let alert of alerts" class="alert" [ngClass]="'alert--' + alert.type">
+      <div class="alert__icon">
+        <svg *ngIf="alert.type === 'success'" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4Z"/></svg>
+        <svg *ngIf="alert.type === 'warn'" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z"/></svg>
+        <svg *ngIf="alert.type === 'error'" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 15h-2v-6h2Zm0-8h-2V7h2Z"/></svg>
+      </div>
+      <div class="alert__content">
+        <div class="alert__title">{{ alert.title }}</div>
+        <div class="alert__desc">{{ alert.desc }}</div>
+      </div>
+      <button class="alert__close" aria-label="Cerrar" (click)="closeAlert(alert.id)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <section class="form-card">
+    <div class="field">
+      <label for="nueva">Crear nueva materia</label>
+      <input id="nueva" type="text" placeholder="Ej.: Psicología Cognitiva..." [(ngModel)]="nuevaMateriaNombre">
+      <button class="btn" type="button" (click)="crearMateria()">Crear materia</button>
+      <p class="hint">Podés crear una nueva materia para comenzar a gestionar tus evaluaciones.</p>
+    </div>
+
+    <div class="field">
+      <label for="existente">O seleccionar una materia existente</label>
+      <div class="row-inline">
+        <select id="existente" [(ngModel)]="materiaSeleccionadaId">
+          <option value="" selected disabled>Seleccionar materia</option>
+          <option *ngFor="let m of materias" [value]="m.id">{{ m.nombre }}</option>
+        </select>
+
+        <div class="row-actions">
+          <button class="btn ghost" type="button" (click)="editarMateria()">Editar nombre</button>
+          <button class="btn danger" type="button" (click)="eliminarMateria()">Eliminar</button>
+          <button class="btn outline" type="button" (click)="irAlPanel()">Ir al panel</button>
+        </div>
+      </div>
+      <p class="hint">Seleccioná una materia ya creada para ir a su panel de gestión.</p>
+    </div>
+  </section>
+</main>
+
+<div *ngIf="confirmDialog" class="alert alert--warn" style="position: fixed; top: 120px; left: 50%; transform: translateX(-50%); z-index: 100;">
+  <div class="alert__icon">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z"/></svg>
+  </div>
+  <div class="alert__content">
+    <div class="alert__title">{{ confirmDialog.title }}</div>
+    <div class="alert__desc">{{ confirmDialog.desc }}</div>
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button class="btn danger sm" (click)="executeConfirm()">Eliminar</button>
+      <button class="btn outline sm" (click)="closeConfirm()">Cancelar</button>
+    </div>
+  </div>
+  <button class="alert__close" aria-label="Cerrar" (click)="closeConfirm()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+</div>
