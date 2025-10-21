@@ -43,17 +43,3 @@ urlpatterns = [
     path('api/alumno/examen/<int:examen_alumno_id>/resultado/', ExamenResultadoView.as_view(), name='examen-resultado'),
     path('api/alumno/examen/<int:examen_alumno_id>/retroalimentacion/', ExamenRetroalimentacionView.as_view(), name='examen-retroalimentacion'),
 ]
-# AL FINAL DE urls.py - TEMPORAL
-print("🔄 REGISTRANDO URLS...")
-
-# Verificar que GuardarRespuestaView existe
-try:
-    guardar_view = GuardarRespuestaView
-    print("✅ GuardarRespuestaView: OK")
-except NameError:
-    print("❌ GuardarRespuestaView: NO EXISTE")
-
-print("📋 URL PATTERNS:")
-for url in urlpatterns:
-    if hasattr(url, 'pattern'):
-        print(f"   {url.pattern}")

@@ -111,14 +111,13 @@ class ExamenSerializer(serializers.ModelSerializer):
 class PreguntaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pregunta
-        fields = '__all__'
+        fields = ['id', 'enunciado', 'tipo', 'puntaje', 'opciones', 'orden']
 
 class RespuestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Respuesta
         fields = '__all__'
 
-# ✅ CORREGIDO: Serializer personalizado para ExamenAlumno con campos adicionales
 class ExamenAlumnoDetalleSerializer(serializers.ModelSerializer):
     titulo = serializers.CharField(source='examen.titulo', read_only=True)
     materia = serializers.CharField(source='examen.profesor_curso.curso.nombre', read_only=True)

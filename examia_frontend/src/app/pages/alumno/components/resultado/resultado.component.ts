@@ -53,6 +53,7 @@ export class Resultado implements OnInit {
 
   loadResults() {
     this.isLoading = true;
+    
     this.evaluacionesService.getResultadoExamen(parseInt(this.evaluationId)).subscribe({
       next: (data: any) => {
         this.examen = {
@@ -65,9 +66,13 @@ export class Resultado implements OnInit {
           calificacion_final: data.calificacion_final || 0,
           puntaje_maximo: data.puntaje_maximo || 10,
           estado: data.estado || 'corregido',
-          preguntas: data.preguntas || []
+          preguntas: this.procesarPreguntas(data.preguntas || [])
         };
         this.isLoading = false;
+        
+        setTimeout(() => {
+          console.log('Resultados cargados:', this.examen);
+        }, 100);
       },
       error: (error: any) => {
         this.error = 'Error al cargar los resultados';
@@ -77,14 +82,43 @@ export class Resultado implements OnInit {
     });
   }
 
-  // MÉTODO NUEVO: Verificar si hay retroalimentación
+  procesarPreguntas(preguntas: any[]): QuestionResult[] {
+    return preguntas.map(pregunta => {
+      let estado: 'correct' | 'partial' | 'incorrect' = 'incorrect';
+      
+      const puntajeObtenido = pregunta.puntaje_obtenido || 0;
+      const puntajeMaximo = pregunta.puntaje_maximo || 1;
+      
+      if (puntajeObtenido >= puntajeMaximo) {
+        estado = 'correct';
+      } else if (puntajeObtenido > 0) {
+        estado = 'partial';
+      } else {
+        estado = 'incorrect';
+      }
+      
+      return {
+        ...pregunta,
+        estado: estado,
+        puntaje_obtenido: puntajeObtenido,
+        puntaje_maximo: puntajeMaximo
+      };
+    });
+  }
+
   tieneRetroalimentacion(): boolean {
-    return this.examen?.preguntas?.some(p => p.retroalimentacion) || false;
+    const tieneRetro = this.examen?.preguntas?.some(p => 
+      p.retroalimentacion && p.retroalimentacion !== 'Sin comentarios del docente'
+    ) || false;
+    
+    console.log('¿Tiene retroalimentación?:', tieneRetro);
+    return tieneRetro;
   }
 
   viewFeedback() {
     if (this.examen) {
-      this.router.navigate(['/alumno/retroalimentacion', this.evaluationId]);  // ✅ Usar evaluationId
+      console.log('Navegando a retroalimentación con ID:', this.evaluationId);
+      this.router.navigate(['/alumno/retroalimentacion', this.evaluationId]);
     }
   }
 
@@ -109,5 +143,9 @@ export class Resultado implements OnInit {
   formatFecha(fecha: string): string {
     if (!fecha) return 'No especificada';
     return new Date(fecha).toLocaleDateString('es-ES');
+  }
+
+  recargarResultados() {
+    this.loadResults();
   }
 }

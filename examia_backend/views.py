@@ -224,10 +224,7 @@ class IniciarEvaluacionView(APIView):
 class GuardarRespuestaView(APIView):
     permission_classes = [AllowAny]  # ← Temporal sin auth
     
-    def post(self, request):
-        print("🎯 GUARDAR RESPUESTA ORIGINAL - VISTA EJECUTADA")
-        print("📦 Datos recibidos:", request.data)
-        
+    def post(self, request):  
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             data = request.data
@@ -264,7 +261,6 @@ class GuardarRespuestaView(APIView):
             )
             
             serializer = RespuestaAlumnoSerializer(respuesta_alumno)
-            print("✅ Respuesta guardada exitosamente")
             return Response(serializer.data)
             
         except Exception as e:
@@ -479,7 +475,7 @@ class ExamenResultadoView(APIView):
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             examen_alumno = ExamenAlumno.objects.get(
-                id=examen_alumno_id,  # ✅ CORREGIDO
+                id=examen_alumno_id,
                 alumno=alumno,
                 calificacion_final__isnull=False
             )
@@ -500,6 +496,7 @@ class ExamenResultadoView(APIView):
                 else:
                     estado = 'incorrect'
                 
+                # ✅ CORREGIDO: Usar el campo correcto
                 preguntas_data.append({
                     'id': respuesta.pregunta.id,
                     'tipo': respuesta.pregunta.tipo,
@@ -508,13 +505,13 @@ class ExamenResultadoView(APIView):
                     'puntaje_obtenido': puntaje_obtenido,
                     'puntaje_maximo': puntaje_maximo,
                     'estado': estado,
-                    'retroalimentacion': f"Retroalimentación para: {respuesta.pregunta.enunciado[:50]}..." if respuesta.pregunta.enunciado else "Sin retroalimentación específica"
+                    'retroalimentacion': getattr(respuesta, 'retroalimentacion', '') or f"Retroalimentación para: {respuesta.pregunta.enunciado[:50]}..."
                 })
             
             puntaje_maximo_total = sum([p['puntaje_maximo'] for p in preguntas_data])
             
             return Response({
-                'id': examen_alumno.id,  # ✅ CORREGIDO: Usar ID de ExamenAlumno
+                'id': examen_alumno.id,
                 'titulo': examen_alumno.examen.titulo,
                 'materia': examen_alumno.examen.profesor_curso.curso.nombre,
                 'docente': examen_alumno.examen.profesor_curso.profesor.nombre,
@@ -539,7 +536,7 @@ class ExamenRetroalimentacionView(APIView):
         try:
             alumno = Alumno.objects.get(usuario=request.user)
             examen_alumno = ExamenAlumno.objects.get(
-                id=examen_alumno_id,  # ✅ CORREGIDO
+                id=examen_alumno_id,
                 alumno=alumno,
                 calificacion_final__isnull=False
             )
@@ -563,8 +560,9 @@ class ExamenRetroalimentacionView(APIView):
                 preguntas_data.append({
                     'id': respuesta.pregunta.id,
                     'enunciado': respuesta.pregunta.enunciado,
+                    'tipo': respuesta.pregunta.tipo,
                     'respuesta_alumno': respuesta.respuesta,
-                    'retroalimentacion': self.generar_retroalimentacion(respuesta.pregunta.enunciado, puntaje_obtenido, puntaje_maximo),
+                    'retroalimentacion': respuesta.retroalimentacion or self.generar_retroalimentacion(respuesta.pregunta.enunciado, puntaje_obtenido, puntaje_maximo),
                     'score_type': score_type,
                     'puntaje_obtenido': puntaje_obtenido,
                     'puntaje_maximo': puntaje_maximo

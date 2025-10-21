@@ -23,7 +23,7 @@ from examia_backend.models import *
 def populate_examen_prueba2():
     """Poblar un SEGUNDO examen de PRUEBA para verificar coexistencia"""
     print("\n" + "="*60)
-    print("Creando EXAMEN PRUEBA2...")
+    print("Creando EXAMEN prueba35...")
     print("="*60)
     
     # 1. Obtener el alumno JoacoT
@@ -46,20 +46,20 @@ def populate_examen_prueba2():
 
     # 3. ELIMINAR examen existente si existe (solo EXAMEN PRUEBA2)
     try:
-        examen_existente = Examen.objects.get(titulo='EXAMEN PRUEBA2')
+        examen_existente = Examen.objects.get(titulo='EXAMEN PRUEBA12')
         examen_existente.delete()
-        print("✓ Examen PRUEBA2 existente eliminado")
+        print("✓ Examen PRUEBA10 existente eliminado")
     except Examen.DoesNotExist:
-        print("✓ No había examen PRUEBA2 existente")
+        print("✓ No había examen PRUEBA9 existente")
 
     # 4. Crear el SEGUNDO examen de PRUEBA
-    examen_prueba2 = Examen.objects.create(
+    examen_prueba35 = Examen.objects.create(
         profesor_curso=profesor_curso,
-        titulo='EXAMEN PRUEBA2',
+        titulo='EXAMEN prueba35',
         descripcion='Segundo examen de prueba para verificar coexistencia',
         fecha_limite=datetime.now() + timedelta(days=14),  # 2 semanas de plazo
     )
-    print("✓ Examen creado: 'EXAMEN PRUEBA2'")
+    print("✓ Examen creado: 'EXAMEN prueba35'")
 
     # 5. Crear preguntas DIFERENTES para el segundo examen
     preguntas_data = [
@@ -88,7 +88,7 @@ def populate_examen_prueba2():
 
     for i, pregunta_data in enumerate(preguntas_data, 1):
         Pregunta.objects.create(
-            examen=examen_prueba2,
+            examen=examen_prueba35,
             enunciado=pregunta_data['enunciado'],
             tipo=pregunta_data['tipo'],
             puntaje=pregunta_data['puntaje'],
@@ -100,7 +100,7 @@ def populate_examen_prueba2():
     # 6. Crear relación examen-alumno CON ESTADO ACTIVO
     examen_alumno = ExamenAlumno.objects.create(
         alumno=alumno,
-        examen=examen_prueba2,
+        examen=examen_prueba35,
         estado='activo',                    # ✅ Estado activo
         fecha_realizacion=None,             # ✅ Sin fecha de realización
         calificacion_final=None,            # ✅ Sin calificación
@@ -112,10 +112,10 @@ def populate_examen_prueba2():
 
     # 7. Resumen final
     print("\n" + "="*60)
-    print("¡EXAMEN PRUEBA2 CREADO EXITOSAMENTE!")
+    print("¡EXAMEN prueba35 CREADO EXITOSAMENTE!")
     print("="*60)
-    print(f"📚 Examen: {examen_prueba2.titulo}")
-    print(f"📅 Vence: {examen_prueba2.fecha_limite.strftime('%d/%m/%Y')}")
+    print(f"📚 Examen: {examen_prueba35.titulo}")
+    print(f"📅 Vence: {examen_prueba35.fecha_limite.strftime('%d/%m/%Y')}")
     print(f"❓ Preguntas: 3 (diferentes a PRUEBA1)")
     print(f"🎯 Alumno: {alumno.nombre}")
     print(f"🔰 Estado: ACTIVO")

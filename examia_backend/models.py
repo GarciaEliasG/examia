@@ -76,16 +76,17 @@ class ExamenAlumno(models.Model):
     
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     examen = models.ForeignKey(Examen, on_delete=models.CASCADE)
-    fecha_realizacion = models.DateField(null=True, blank=True)  # ✅ CORREGIDO: Sin auto_now_add
+    fecha_realizacion = models.DateTimeField(null=True, blank=True)  # ✅ CAMBIAR a DateTimeField
     calificacion_final = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     retroalimentacion = models.TextField(blank=True)
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')  # ✅ NUEVO CAMPO
-    fecha_inicio = models.DateTimeField(null=True, blank=True)  # ✅ NUEVO: Para saber cuándo empezó
-    tiempo_utilizado = models.IntegerField(default=0)  # ✅ NUEVO: Tiempo en segundos
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
+    fecha_inicio = models.DateTimeField(null=True, blank=True)
+    tiempo_utilizado = models.IntegerField(default=0)
 
 class RespuestaAlumno(models.Model):
     examen_alumno = models.ForeignKey(ExamenAlumno, on_delete=models.CASCADE, related_name="respuestas_alumno")
     pregunta = models.ForeignKey(Pregunta, on_delete=models.CASCADE)
     respuesta = models.TextField()
     puntaje_obtenido = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    retroalimentacion = models.TextField(blank=True)  # ✅ AGREGAR este campo
     fecha_respuesta = models.DateTimeField(auto_now=True)
