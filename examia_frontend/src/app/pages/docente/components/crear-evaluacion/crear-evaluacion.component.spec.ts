@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CorregirEvaluaciones } from './corregir-evaluaciones';
+import { CrearEvaluacion } from './crear-evaluacion.component';
 
-describe('CorregirEvaluaciones', () => {
-  let component: CorregirEvaluaciones;
-  let fixture: ComponentFixture<CorregirEvaluaciones>;
+describe('CrearEvaluacion', () => {
+  let component: CrearEvaluacion;
+  let fixture: ComponentFixture<CrearEvaluacion>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CorregirEvaluaciones]
+      imports: [CrearEvaluacion]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CorregirEvaluaciones);
+    fixture = TestBed.createComponent(CrearEvaluacion);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -18,8 +18,8 @@ interface Curso {
   selector: 'app-gestion-alumnos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './gestion-alumnos.html',
-  styleUrls: ['./gestion-alumnos.css'] // Asumo que tienes un CSS con este nombre
+  templateUrl: './gestion-alumnos.component.html',
+  styleUrls: ['./gestion-alumnos.component.css'] // Asumo que tienes un CSS con este nombre
 })
 export class GestionAlumnos implements OnInit {
 

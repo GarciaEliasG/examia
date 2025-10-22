@@ -42,4 +42,12 @@ urlpatterns = [
     path('api/alumno/examen/<int:examen_alumno_id>/envio/', ExamenEnvioView.as_view(), name='examen-envio'),
     path('api/alumno/examen/<int:examen_alumno_id>/resultado/', ExamenResultadoView.as_view(), name='examen-resultado'),
     path('api/alumno/examen/<int:examen_alumno_id>/retroalimentacion/', ExamenRetroalimentacionView.as_view(), name='examen-retroalimentacion'),
+    
+    #urls docente
+    path('api/docente/panel/', PanelDocenteView.as_view(), name='panel-docente'),
+    path('api/docente/cursos/', CursosDocenteView.as_view(), name='cursos-docente'),
+    path('api/docente/cursos/crear/', CrearCursoView.as_view(), name='crear-curso'),
+    path('api/docente/examenes/', ExamenesDocenteView.as_view(), name='examenes-docente'),
+    path('api/docente/examenes/crear/', CrearExamenView.as_view(), name='crear-examen'),
+
 ]

@@ -29,8 +29,8 @@ interface ConfirmDialog {
     CommonModule,
     FormsModule,
   ],
-  templateUrl: './materias.html',
-  styleUrl: './materias.css'
+  templateUrl: './materias.component.html',
+  styleUrl: './materias.component.css'
 })
 export class Materias implements OnInit {
 

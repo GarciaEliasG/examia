@@ -18,8 +18,8 @@ interface EvaluacionRespuesta {
     CommonModule,
     FormsModule // Lo añadimos a los imports
   ],
-  templateUrl: './respuestas.html',
-  styleUrls: ['./respuestas.css'] // Asumo que tienes un CSS con este nombre
+  templateUrl: './respuestas.component.html',
+  styleUrls: ['./respuestas.component.css'] // Asumo que tienes un CSS con este nombre
 })
 export class Respuestas implements OnInit {
 

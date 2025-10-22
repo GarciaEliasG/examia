@@ -42,8 +42,8 @@ interface Pregunta {
     FormsModule,
     RouterModule
   ],
-  templateUrl: './cargar-preguntas.html',
-  styleUrl: './cargar-preguntas.css' // Asumo que tienes un CSS
+  templateUrl: './cargar-preguntas.component.html',
+  styleUrl: './cargar-preguntas.component.css' // Asumo que tienes un CSS
 })
 export class CargarPreguntas implements OnInit {
 

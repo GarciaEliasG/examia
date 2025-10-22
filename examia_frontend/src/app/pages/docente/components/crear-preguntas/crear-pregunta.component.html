@@ -1,0 +1,159 @@
+<!-- pages/docente/components/crear-pregunta/crear-pregunta.component.html -->
+<div class="modal-overlay">
+  <div class="modal-backdrop" (click)="onCancelar()"></div>
+  <div class="modal-card large">
+    <div class="modal-header">
+      <h2>Crear Nueva Pregunta</h2>
+      <button class="modal-close" (click)="onCancelar()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-content">
+      
+      <!-- Información del tipo de pregunta -->
+      <div class="tipo-info-card">
+        <h4>{{ getMensajeActual().titulo }}</h4>
+        <p>{{ getMensajeActual().descripcion }}</p>
+      </div>
+
+      <hr>
+
+      <!-- Selección de tipo de pregunta -->
+      <div class="field">
+        <label for="tipoPregunta">Tipo de Pregunta</label>
+        <div class="tipos-grid">
+          <button 
+            *ngFor="let tipo of tiposPregunta"
+            type="button"
+            class="tipo-btn"
+            [class.active]="pregunta.tipo === tipo.value"
+            (click)="cambiarTipoPregunta(tipo.value)">
+            {{ tipo.label }}
+          </button>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Enunciado de la pregunta -->
+      <div class="field">
+        <label for="enunciado">
+          Enunciado de la pregunta *
+        </label>
+        <textarea
+          id="enunciado"
+          [(ngModel)]="pregunta.enunciado"
+          placeholder="Escribe aquí la pregunta o consigna para el alumno..."
+          rows="4"></textarea>
+      </div>
+
+      <hr>
+
+      <!-- Puntaje -->
+      <div class="field">
+        <label for="puntaje">Puntaje *</label>
+        <div class="puntaje-control">
+          <input
+            type="number"
+            id="puntaje"
+            [(ngModel)]="pregunta.puntaje"
+            min="0.5"
+            max="10"
+            step="0.5">
+          <span class="puntaje-sufijo">puntos</span>
+        </div>
+        <small class="field-hint">Valor entre 0.5 y 10 puntos</small>
+      </div>
+
+      <!-- Opciones para Multiple Choice -->
+      <div *ngIf="pregunta.tipo === 'multiple_choice'" class="opciones-section">
+        <div class="section-header">
+          <h4>Opciones de Respuesta</h4>
+          <small>Selecciona cuál es la respuesta correcta</small>
+        </div>
+
+        <div class="opciones-list">
+          <div *ngFor="let opcion of pregunta.opciones; let i = index; trackBy: trackByFn" 
+               class="opcion-item"
+               [class.correcta]="esOpcionCorrecta(i)">
+            
+            <div class="opcion-header">
+              <label class="opcion-radio">
+                <input
+                  type="radio"
+                  name="respuestaCorrecta"
+                  [value]="i"
+                  [(ngModel)]="pregunta.respuesta_correcta">
+                <span class="radio-custom"></span>
+                <span class="opcion-indice">Opción {{ i + 1 }}</span>
+              </label>
+              
+              <button
+                type="button"
+                class="btn-icon danger sm"
+                (click)="eliminarOpcion(i)"
+                [disabled]="!puedeEliminarOpcion()"
+                title="Eliminar opción">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+
+            <input
+              type="text"
+              [ngModel]="pregunta.opciones[i]"
+              (ngModelChange)="actualizarOpcion(i, $event)"
+              placeholder="Escribe la opción de respuesta..."
+              class="opcion-input">
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn ghost sm"
+          (click)="agregarOpcion()"
+          [disabled]="!puedeAgregarOpcion()">
+          <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+          </svg>
+          Agregar Opción
+        </button>
+      </div>
+
+      <!-- Información adicional según tipo -->
+      <div *ngIf="pregunta.tipo !== 'multiple_choice'" class="info-adicional">
+        <div class="info-card">
+          <h5>Información para el alumno</h5>
+          <p *ngIf="pregunta.tipo === 'texto'">
+            Esta pregunta requiere una respuesta breve. El alumno deberá escribir un texto de máximo <strong>100 palabras</strong>.
+          </p>
+          <p *ngIf="pregunta.tipo === 'desarrollo'">
+            Esta pregunta requiere un desarrollo extenso. El alumno podrá escribir sin límite de palabras para explicar el tema en profundidad.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" (click)="onCancelar()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn primary" 
+        (click)="guardarPregunta()"
+        [disabled]="!esFormularioValido()">
+        
+        <svg viewBox="0 0 24 24" width="18" height="18" style="margin-right: 8px;">
+          <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" fill="currentColor"/>
+        </svg>
+        Guardar Pregunta
+      </button>
+    </div>
+  </div>
+</div>

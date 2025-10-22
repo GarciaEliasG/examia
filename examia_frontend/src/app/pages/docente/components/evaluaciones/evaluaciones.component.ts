@@ -20,8 +20,8 @@ interface Evaluacion {
     FormsModule, // <-- 3. Agrégalo a los imports
     RouterModule
   ],
-  templateUrl: './evaluaciones.html',
-  styleUrls: ['./evaluaciones.css']
+  templateUrl: './evaluaciones.component.html',
+  styleUrls: ['./evaluaciones.component.css']
 })
 export class Evaluaciones implements OnInit {
 

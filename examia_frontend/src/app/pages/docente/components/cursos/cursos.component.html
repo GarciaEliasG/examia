@@ -1,0 +1,187 @@
+<!-- pages/docente/components/cursos/cursos.component.html -->
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <!-- Header con botón volver y título -->
+  <div class="header-row">
+    <a routerLink="/docente/panel" class="icon-btn back" aria-label="Volver al panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 7l-5 5 5 5V7z"/>
+      </svg>
+    </a>
+    <h1 class="title">Mis Cursos</h1>
+  </div>
+
+  <!-- Barra de acciones -->
+  <div class="actions-bar">
+    <button class="btn primary" (click)="abrirCrearCursoModal()">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="margin-right: 8px;">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+      </svg>
+      Crear Nuevo Curso
+    </button>
+    <button class="btn ghost" (click)="recargar()" title="Recargar cursos">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="margin-right: 8px;">
+        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
+      </svg>
+      Recargar
+    </button>
+  </div>
+
+  <!-- Estados de carga y error -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando cursos...</p>
+  </div>
+
+  <div *ngIf="hasError && !isLoading" class="error-state">
+    <h3>⚠️ Error al cargar cursos</h3>
+    <p>{{ error }}</p>
+    <button class="btn primary" (click)="recargar()">Reintentar</button>
+  </div>
+
+  <!-- Lista de cursos -->
+  <section *ngIf="!isLoading && !hasError" class="courses-list">
+    
+    <!-- Mensaje si no hay cursos -->
+    <div *ngIf="cursos.length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No tenés cursos creados</h3>
+      <p>Creá tu primer curso para comenzar a gestionar evaluaciones y alumnos.</p>
+      <button class="btn primary" (click)="abrirCrearCursoModal()">
+        Crear tu primer curso
+      </button>
+    </div>
+
+    <!-- Grid de cursos -->
+    <div *ngIf="cursos.length > 0" class="courses-grid">
+      <article *ngFor="let curso of cursos" class="course-card">
+        
+        <!-- Header del curso -->
+        <div class="course-header">
+          <div class="course-title-section">
+            <h3 class="course-name">{{ curso.nombre }}</h3>
+            <span class="course-code">{{ curso.codigo }}</span>
+          </div>
+          <span class="course-status" [class]="'status-' + curso.estado">
+            {{ curso.estado }}
+          </span>
+        </div>
+        
+        <!-- Descripción -->
+        <p class="course-desc">{{ curso.descripcion }}</p>
+        
+        <!-- Estadísticas -->
+        <div class="course-stats">
+          <div class="stat-item">
+            <span class="stat-icon">👥</span>
+            <span class="stat-value">{{ curso.cantidad_alumnos }}</span>
+            <span class="stat-label">alumnos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">📝</span>
+            <span class="stat-value">{{ curso.cantidad_examenes }}</span>
+            <span class="stat-label">evaluaciones</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">👨‍🏫</span>
+            <span class="stat-value">{{ curso.profesor_titular }}</span>
+          </div>
+        </div>
+
+        <!-- Acciones del curso -->
+        <div class="course-actions">
+          <button class="btn ghost sm" (click)="verCursoDetalles(curso.id)" title="Ver detalles del curso">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>
+            </svg>
+            Detalles
+          </button>
+          
+          <button class="btn ghost sm" (click)="gestionarAlumnos(curso.id)" title="Gestionar alumnos del curso">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+              <path d="M16 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm-8-2a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm16 6a1 1 0 0 1-2 0 7 7 0 0 0-14 0 1 1 0 0 1-2 0 9 9 0 0 1 18 0z" fill="currentColor"/>
+            </svg>
+            Alumnos
+          </button>
+          
+          <button class="btn primary sm" (click)="crearEvaluacion(curso.id)" title="Crear evaluación para este curso">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+            </svg>
+            Crear Evaluación
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Modal Crear Curso -->
+  <div *ngIf="showCrearCursoModal" class="modal-overlay">
+    <div class="modal-backdrop" (click)="cerrarCrearCursoModal()"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Crear Nuevo Curso</h3>
+        <button class="modal-close" (click)="cerrarCrearCursoModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+      
+      <form (ngSubmit)="crearCurso()" class="modal-form">
+        <div class="form-group">
+          <label for="nombreCurso">Nombre del Curso *</label>
+          <input 
+            type="text" 
+            id="nombreCurso" 
+            [(ngModel)]="nuevoCurso.nombre" 
+            name="nombre"
+            placeholder="Ej: Matemáticas Avanzadas"
+            required
+            autofocus>
+        </div>
+        
+        <div class="form-group">
+          <label for="descripcionCurso">Descripción</label>
+          <textarea 
+            id="descripcionCurso" 
+            [(ngModel)]="nuevoCurso.descripcion" 
+            name="descripcion"
+            placeholder="Describe el contenido y objetivos del curso..."
+            rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="codigoCurso">Código del Curso</label>
+          <input 
+            type="text" 
+            id="codigoCurso" 
+            [(ngModel)]="nuevoCurso.codigo" 
+            name="codigo"
+            placeholder="Ej: MAT101 (se genera automáticamente si está vacío)"
+            style="text-transform: uppercase;">
+          <small class="form-hint">Dejá vacío para generar un código automático</small>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" (click)="cerrarCrearCursoModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn primary">
+            Crear Curso
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>

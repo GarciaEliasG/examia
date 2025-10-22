@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes 
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.db.models import Q
+from django.db.models import Q, Count
 from datetime import date, datetime
 import json
 import threading
@@ -586,6 +586,342 @@ class ExamenRetroalimentacionView(APIView):
             return f"Respuesta parcialmente correcta para: {enunciado[:50]}... Revisa los conceptos para mejorar."
         else:
             return f"Respuesta incorrecta para: {enunciado[:50]}... Recomiendo repasar el material sobre este tema."
+
+
+# Agregar estas views a tu views.py existente
+
+class PanelDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            # 1. Verificar que el usuario es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            print(f"🔍 Cargando panel para profesor: {profesor.nombre}")
+            
+            # 2. Obtener cursos a través de ProfesorCurso
+            profesor_cursos = ProfesorCurso.objects.filter(profesor=profesor)
+            cursos_ids = profesor_cursos.values_list('curso_id', flat=True)
+            
+            print(f"📚 IDs de cursos encontrados: {list(cursos_ids)}")
+            
+            # 3. Obtener cursos con estadísticas (CORREGIDO)
+            cursos = Curso.objects.filter(id__in=cursos_ids).annotate(
+                cantidad_alumnos=Count('inscripcion', distinct=True)
+            )
+            
+            # 4. Contar exámenes por separado (CORREGIDO)
+            for curso in cursos:
+                # Contar exámenes a través de ProfesorCurso
+                curso.cantidad_examenes = Examen.objects.filter(
+                    profesor_curso__curso=curso,
+                    profesor_curso__profesor=profesor
+                ).count()
+            
+            print(f"📊 Cursos procesados: {cursos.count()}")
+            
+            # 5. Obtener exámenes del profesor
+            examenes = Examen.objects.filter(profesor_curso__profesor=profesor)
+            print(f"📝 Exámenes encontrados: {examenes.count()}")
+            
+            # 6. Obtener evaluaciones pendientes de corrección
+            pendientes_correccion = ExamenAlumno.objects.filter(
+                examen__profesor_curso__profesor=profesor,
+                calificacion_final__isnull=True,
+                fecha_realizacion__isnull=False
+            ).count()
+            
+            print(f"⏳ Pendientes de corrección: {pendientes_correccion}")
+            
+            # 7. Calcular total de alumnos únicos
+            total_alumnos = Inscripcion.objects.filter(
+                curso_id__in=cursos_ids
+            ).values('alumno').distinct().count()
+            
+            print(f"👥 Total alumnos únicos: {total_alumnos}")
+            
+            # 8. Preparar respuesta
+            response_data = {
+                'docente': {
+                    'id': profesor.id,
+                    'nombre': profesor.nombre,
+                    'email': profesor.email
+                },
+                'estadisticas': {
+                    'totalCursos': cursos.count(),
+                    'totalExamenes': examenes.count(),
+                    'totalAlumnos': total_alumnos,
+                    'pendientesCorreccion': pendientes_correccion
+                },
+                'cursosRecientes': [
+                    {
+                        'id': curso.id,
+                        'nombre': curso.nombre,
+                        'descripcion': curso.descripcion,
+                        'cantidad_alumnos': curso.cantidad_alumnos,
+                        'cantidad_examenes': curso.cantidad_examenes
+                    }
+                    for curso in cursos[:5]
+                ]
+            }
+            
+            print(f"✅ Datos preparados para respuesta")
+            return Response(response_data)
+            
+        except Exception as e:
+            print(f"❌ ERROR en PanelDocenteView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback: {traceback.format_exc()}")
+            
+            return Response(
+                {'error': f'Error interno del servidor: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class CursosDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Obtener cursos a través de ProfesorCurso
+            profesor_cursos = ProfesorCurso.objects.filter(profesor=profesor)
+            cursos_ids = profesor_cursos.values_list('curso_id', flat=True)
+            
+            # Obtener cursos con estadísticas (CORREGIDO)
+            cursos = Curso.objects.filter(id__in=cursos_ids).annotate(
+                cantidad_alumnos=Count('inscripcion', distinct=True)
+            )
+            
+            # Agregar cantidad de exámenes manualmente (CORREGIDO)
+            cursos_data = []
+            for curso in cursos:
+                # Contar exámenes a través de ProfesorCurso
+                cantidad_examenes = Examen.objects.filter(
+                    profesor_curso__curso=curso,
+                    profesor_curso__profesor=profesor
+                ).count()
+                
+                # Obtener el profesor específico para este curso
+                profesor_curso = profesor_cursos.filter(curso=curso).first()
+                
+                cursos_data.append({
+                    'id': curso.id,
+                    'nombre': curso.nombre,
+                    'descripcion': curso.descripcion,
+                    'codigo': f"{curso.nombre[:3].upper()}001",
+                    'cantidad_alumnos': curso.cantidad_alumnos,
+                    'cantidad_examenes': cantidad_examenes,
+                    'estado': 'activo',
+                    'profesor_titular': profesor_curso.rol if profesor_curso else 'Titular'
+                })
+            
+            return Response(cursos_data)
+            
+        except Exception as e:
+            print(f"❌ ERROR en CursosDocenteView: {str(e)}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class CrearCursoView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            profesor = Profesor.objects.get(usuario=request.user)
+            
+            nombre = request.data.get('nombre')
+            descripcion = request.data.get('descripcion', '')
+            codigo = request.data.get('codigo', '').upper()
+            
+            if not nombre:
+                return Response(
+                    {'error': 'El nombre del curso es requerido'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Crear el curso
+            curso = Curso.objects.create(
+                nombre=nombre,
+                descripcion=descripcion
+            )
+            
+            # Asignar el profesor al curso
+            ProfesorCurso.objects.create(
+                curso=curso,
+                profesor=profesor,
+                rol='Titular'
+            )
+            
+            return Response({
+                'message': 'Curso creado exitosamente',
+                'curso': {
+                    'id': curso.id,
+                    'nombre': curso.nombre,
+                    'descripcion': curso.descripcion,
+                    'codigo': codigo or f"{curso.nombre[:3].upper()}001",
+                    'cantidad_alumnos': 0,
+                    'cantidad_examenes': 0,
+                    'estado': 'activo'
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except Profesor.DoesNotExist:
+            return Response(
+                {'error': 'Usuario no es un profesor'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+class ExamenesDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            examenes = Examen.objects.filter(
+                profesor_curso__profesor=profesor
+            ).select_related(
+                'profesor_curso__curso'
+            ).prefetch_related('preguntas')
+            
+            examenes_data = []
+            for examen in examenes:
+                # Contar entregas y pendientes de corrección
+                entregas_totales = ExamenAlumno.objects.filter(examen=examen).count()
+                pendientes_correccion = ExamenAlumno.objects.filter(
+                    examen=examen,
+                    calificacion_final__isnull=True,
+                    fecha_realizacion__isnull=False
+                ).count()
+                
+                examenes_data.append({
+                    'id': examen.id,
+                    'titulo': examen.titulo,
+                    'descripcion': examen.descripcion,
+                    'curso': examen.profesor_curso.curso.nombre,
+                    'curso_id': examen.profesor_curso.curso.id,
+                    'fecha_creacion': examen.fecha_creacion,
+                    'fecha_limite': examen.fecha_limite,
+                    'cantidad_preguntas': examen.preguntas.count(),
+                    'entregas_totales': entregas_totales,
+                    'pendientes_correccion': pendientes_correccion,
+                    'estado': 'activo' if not examen.fecha_limite or examen.fecha_limite >= date.today() else 'vencido'
+                })
+            
+            return Response(examenes_data)
+            
+        except Exception as e:
+            print(f"❌ ERROR en ExamenesDocenteView: {str(e)}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class CrearExamenView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            # 1. Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            data = request.data
+            
+            # 2. Validar datos requeridos
+            required_fields = ['titulo', 'curso_id']
+            for field in required_fields:
+                if field not in data:
+                    return Response(
+                        {'error': f'Campo requerido: {field}'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # 3. Obtener o crear ProfesorCurso
+            curso_id = data['curso_id']
+            profesor_curso, created = ProfesorCurso.objects.get_or_create(
+                curso_id=curso_id,
+                profesor=profesor,
+                defaults={'rol': 'Titular'}
+            )
+            
+            # 4. PROCESAR FECHA - CORRECCIÓN AQUÍ
+            fecha_limite = data.get('fecha_limite')
+            if fecha_limite:
+                # Convertir de "2025-10-23T00:00" a "2025-10-23"
+                try:
+                    from datetime import datetime
+                    fecha_obj = datetime.fromisoformat(fecha_limite.replace('Z', '+00:00'))
+                    fecha_limite = fecha_obj.date()  # Extraer solo la fecha
+                except (ValueError, AttributeError) as e:
+                    print(f"⚠️ Error parseando fecha: {fecha_limite}, error: {e}")
+                    fecha_limite = None
+            
+            # 5. Crear el examen
+            examen = Examen.objects.create(
+                profesor_curso=profesor_curso,
+                titulo=data['titulo'],
+                descripcion=data.get('descripcion', ''),
+                fecha_limite=fecha_limite  # Usar fecha procesada
+            )
+            
+            # 6. Crear preguntas
+            preguntas_data = data.get('preguntas', [])
+            for pregunta_data in preguntas_data:
+                Pregunta.objects.create(
+                    examen=examen,
+                    enunciado=pregunta_data['enunciado'],
+                    tipo=pregunta_data['tipo'],
+                    puntaje=pregunta_data['puntaje'],
+                    opciones=pregunta_data.get('opciones', []),
+                    orden=pregunta_data.get('orden', 1)
+                )
+            
+            serializer = ExamenSerializer(examen)
+            return Response({
+                'message': 'Evaluación creada exitosamente',
+                'examen': serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"❌ Error creando examen: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 # ====== VIEWSETS EXISTENTES ======
 
