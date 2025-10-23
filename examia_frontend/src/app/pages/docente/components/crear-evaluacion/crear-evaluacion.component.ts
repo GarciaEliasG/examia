@@ -135,6 +135,10 @@ export class CrearEvaluacion implements OnInit {
     ];
   }
 
+  volverACursos() {
+    this.router.navigate(['/docente/cursos']);
+  }
+
   // ===== MÉTODOS PARA EL MODAL DE PREGUNTAS EXISTENTES =====
   
   abrirPreguntasModal() {

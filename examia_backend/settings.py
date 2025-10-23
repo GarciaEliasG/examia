@@ -5,6 +5,7 @@ Django settings for examia_backend project.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta  # ✅ AGREGAR ESTO
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -112,6 +113,27 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+}
+
+# ✅ NUEVA CONFIGURACIÓN JWT - AGREGAR ESTO
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),      # Token dura 24 HORAS
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),       # Refresh dura 7 DÍAS
+    'ROTATE_REFRESH_TOKENS': True,                     # Generar nuevo refresh token
+    'BLACKLIST_AFTER_ROTATION': True,                  # Invalidar refresh token anterior
+    'UPDATE_LAST_LOGIN': True,                         # Actualizar último login
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
 # Static files
