@@ -142,3 +142,74 @@ class RespuestaAlumnoSerializer(serializers.ModelSerializer):
     class Meta:
         model = RespuestaAlumno
         fields = '__all__'
+
+# ====== NUEVOS SERIALIZERS PARA EDICIÓN DE CORRECCIONES ======
+
+# ====== SERIALIZER PARA LECTURA (GET) ======
+class CorreccionPreguntaReadSerializer(serializers.Serializer):
+    """Serializer para LEER detalles de preguntas (GET) - CON TODOS LOS CAMPOS"""
+    respuesta_id = serializers.IntegerField()
+    pregunta_id = serializers.IntegerField()
+    enunciado = serializers.CharField(read_only=True)
+    tipo_pregunta = serializers.CharField(read_only=True)
+    puntaje_maximo = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    respuesta_alumno = serializers.CharField(read_only=True)
+    puntaje_actual = serializers.DecimalField(max_digits=5, decimal_places=2)
+    retroalimentacion_actual = serializers.CharField(allow_blank=True)
+    orden = serializers.IntegerField(read_only=True)
+
+# ====== SERIALIZER PARA ESCRITURA (PUT) ======
+class CorreccionPreguntaWriteSerializer(serializers.Serializer):
+    """Serializer para ACTUALIZAR preguntas (PUT) - SOLO CAMPOS EDITABLES"""
+    respuesta_id = serializers.IntegerField()
+    puntaje_actual = serializers.DecimalField(max_digits=5, decimal_places=2)
+    retroalimentacion_actual = serializers.CharField(allow_blank=True)
+
+class ActualizarCorreccionSerializer(serializers.Serializer):
+    """Serializer para actualizar corrección completa"""
+    preguntas = CorreccionPreguntaWriteSerializer(many=True)  # ✅ USAR WriteSerializer para PUT
+    retroalimentacion_general = serializers.CharField(allow_blank=True, required=False)
+
+    def validate_preguntas(self, value):
+        """Validar que todas las preguntas tengan datos válidos"""
+        for pregunta in value:
+            if pregunta['puntaje_actual'] < 0:
+                raise serializers.ValidationError("El puntaje no puede ser negativo")
+            # No validamos puntaje_maximo aquí porque no lo tenemos en el write serializer
+        return value
+
+class ExamenCorregidoListSerializer(serializers.Serializer):
+    """Serializer para lista de exámenes corregidos"""
+    examen_alumno_id = serializers.IntegerField()
+    examen_id = serializers.IntegerField()
+    titulo_examen = serializers.CharField()
+    curso = serializers.CharField()
+    curso_id = serializers.IntegerField()
+    alumno_nombre = serializers.CharField()
+    alumno_id = serializers.IntegerField()
+    fecha_realizacion = serializers.CharField(allow_null=True)
+    calificacion_final = serializers.DecimalField(max_digits=5, decimal_places=2)
+    estado = serializers.CharField()
+    fecha_correccion = serializers.CharField(allow_null=True)
+    corregido_por = serializers.CharField()
+
+class DetalleCorreccionSerializer(serializers.Serializer):
+    """Serializer para detalles completos de una corrección"""
+    examen_alumno_id = serializers.IntegerField()
+    examen_id = serializers.IntegerField()
+    titulo_examen = serializers.CharField()
+    curso = serializers.CharField()
+    alumno_nombre = serializers.CharField()
+    alumno_id = serializers.IntegerField()
+    fecha_realizacion = serializers.CharField(allow_null=True)
+    calificacion_actual = serializers.DecimalField(max_digits=5, decimal_places=2)
+    retroalimentacion_general = serializers.CharField()
+    preguntas = CorreccionPreguntaReadSerializer(many=True)  # ✅ USAR ReadSerializer para GET
+    puntaje_total_actual = serializers.DecimalField(max_digits=8, decimal_places=2)
+    puntaje_maximo_total = serializers.DecimalField(max_digits=8, decimal_places=2)
+
+class AlumnoCursoSerializer(serializers.Serializer):
+    """Serializer para lista de alumnos por curso"""
+    id = serializers.IntegerField()
+    nombre = serializers.CharField()
+    email = serializers.EmailField()

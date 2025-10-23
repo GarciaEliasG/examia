@@ -14,6 +14,8 @@
   --success: #10b981;
 }
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 /* Modal */
 .modal-overlay {
   position: fixed;

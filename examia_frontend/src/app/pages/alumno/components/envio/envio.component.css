@@ -239,6 +239,7 @@ html,body{
   color:var(--ink);
   transition: transform .12s ease, box-shadow .12s ease;
 }
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
 .btn:hover{
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,.1);

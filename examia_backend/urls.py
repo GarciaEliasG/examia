@@ -21,7 +21,6 @@ router.register(r'respuestas', RespuestaViewSet)
 router.register(r'examen_alumno', ExamenAlumnoViewSet)
 router.register(r'respuesta_alumno', RespuestaAlumnoViewSet)
 
-# ✅ CORREGIDO: Asegúrate de que todas las rutas estén en urlpatterns
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
@@ -31,7 +30,7 @@ urlpatterns = [
     path('api/auth/login/', login_view, name='login'),
     path('api/auth/register/', register_view, name='register'),
     
-    # ✅ VUELVE A LAS RUTAS ORIGINALES CON '/alumno/'
+    # ✅ RUTAS ALUMNO EXISTENTES
     path('api/alumno/evaluaciones/', EvaluacionesAlumnoView.as_view(), name='evaluaciones-alumno'),
     path('api/alumno/materias/', MateriasAlumnoView.as_view(), name='materias-alumno'),
     path('api/alumno/examen/<int:examen_id>/', ExamenDetalleView.as_view(), name='examen-detalle'),
@@ -44,11 +43,16 @@ urlpatterns = [
     path('api/alumno/examen/<int:examen_alumno_id>/retroalimentacion/', ExamenRetroalimentacionView.as_view(), name='examen-retroalimentacion'),
     path('api/alumno/validar-codigo/', ValidarCodigoView.as_view(), name='validar-codigo'),
     
-    #urls docente
+    # ✅ RUTAS DOCENTE EXISTENTES
     path('api/docente/panel/', PanelDocenteView.as_view(), name='panel-docente'),
     path('api/docente/cursos/', CursosDocenteView.as_view(), name='cursos-docente'),
     path('api/docente/cursos/crear/', CrearCursoView.as_view(), name='crear-curso'),
     path('api/docente/examenes/', ExamenesDocenteView.as_view(), name='examenes-docente'),
     path('api/docente/examenes/crear/', CrearExamenView.as_view(), name='crear-examen'),
-
+    
+    # 🆕 NUEVAS RUTAS PARA EDICIÓN DE CORRECCIONES
+    path('api/docente/examenes-corregidos/', ExamenesCorregidosDocenteView.as_view(), name='examenes-corregidos-docente'),
+    path('api/docente/correccion/<int:examen_alumno_id>/', DetalleCorreccionDocenteView.as_view(), name='detalle-correccion-docente'),
+    path('api/docente/correccion/<int:examen_alumno_id>/actualizar/', ActualizarCorreccionDocenteView.as_view(), name='actualizar-correccion-docente'),
+    path('api/docente/cursos/<int:curso_id>/alumnos/', AlumnosCursoDocenteView.as_view(), name='alumnos-curso-docente'),
 ]

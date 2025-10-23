@@ -19,6 +19,8 @@ body{margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-ap
 /* Layout */
 .wrap{max-width:980px; margin:0 auto; padding:18px 16px 80px}
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 /* Título */
 .title{
   text-align:center; font-weight:800;

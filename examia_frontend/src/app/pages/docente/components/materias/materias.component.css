@@ -132,6 +132,8 @@ input:focus, select:focus {
   box-shadow: 0 4px 12px rgba(31,111,235,.3);
 }
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 .hint {
   font-size: 0.9rem;
   color: var(--muted);

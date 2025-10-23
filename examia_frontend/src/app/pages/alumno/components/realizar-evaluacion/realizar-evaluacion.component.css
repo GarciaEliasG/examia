@@ -1,6 +1,9 @@
 /* ====== Estilos de la Evaluación (Realizar Evaluación) ====== */
 
 /* Las preguntas serán tarjetas similares a eval-card */
+
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 .questions-form{
   max-width:880px;
   margin:24px auto 80px;

@@ -110,6 +110,8 @@
   font-size: 0.95rem;
 }
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);

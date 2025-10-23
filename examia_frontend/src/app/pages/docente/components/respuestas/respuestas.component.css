@@ -63,7 +63,7 @@ body{
   padding:8px 14px; border-radius:8px; border:1px solid #dbeafe;
   background:#eef4ff; cursor:pointer; font-weight:600; color:var(--primary);
 }
-.btn.primary{ background:var(--primary); color:#fff; border:1px solid var(--primary-600); }
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
 .btn.primary:hover{ filter:brightness(1.05); }
 
 .card{

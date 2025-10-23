@@ -1,60 +1,85 @@
 <header class="topbar">
-    <div class="brand">
-      <img src="assets/logo.png" alt="Logo Examia" class="logo">
-    </div>
-    <button class="icon-btn profile" aria-label="Perfil">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
-      </svg>
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <!-- ✅ CORREGIDO: Usar método en lugar de router directo -->
+    <button class="icon-btn back" aria-label="Volver" (click)="volverAlPanel()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
     </button>
-  </header>
+    <h1 class="title">Corregir Evaluaciones</h1>
+  </div>
 
-  <main class="wrap">
-    <div class="header-row">
-      <a href="respuestas.html" class="icon-btn back" aria-label="Volver a respuestas">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
-      </a>
-      <h1 class="title">Corregir evaluación</h1>
+  <!-- Filtros -->
+  <section class="card filtros">
+    <h3>Filtrar Exámenes</h3>
+    <div class="filtros-grid">
+      <div class="filtro-group">
+        <label for="filtroCurso">Curso:</label>
+        <select id="filtroCurso" [(ngModel)]="filtroCurso" (change)="aplicarFiltros()">
+          <option value="">Todos los cursos</option>
+          <option *ngFor="let curso of cursosUnicos" [value]="curso">{{curso}}</option>
+        </select>
+      </div>
+      
+      <div class="filtro-group">
+        <label for="filtroAlumno">Alumno:</label>
+        <input type="text" id="filtroAlumno" [(ngModel)]="filtroAlumno" 
+               (input)="aplicarFiltros()" placeholder="Buscar alumno...">
+      </div>
+      
+      <button class="btn secondary" (click)="limpiarFiltros()">Limpiar Filtros</button>
     </div>
-    
-    <section id="info" class="card">
-      <h2>Evaluación Unidad 1 - Juan Pérez</h2>
-      <p><strong>Curso:</strong> 1° Año • <strong>Fecha de envío:</strong> 15/10/2025 18:30hs</p>
-      <p><strong>Calificación actual:</strong> <span style="color:#f59e0b;font-weight:700">Pendiente</span></p>
-    </section>
+  </section>
 
-    <form id="formCorreccion">
-      <div id="preguntas">
-        
-        <div class="card pregunta">
-          <label>Pregunta 1 (Valor: 3.0 pts)</label>
-          <p><strong>Consigna:</strong> Describa la función de la capa de transporte en el modelo OSI.</p>
-          <p><strong>Respuesta del alumno:</strong> La capa de transporte es la cuarta capa del modelo OSI, responsable de la comunicación extremo a extremo de la información. Sus funciones principales incluyen la segmentación de datos, control de flujo y multiplexación.</p>
-          
-          <label for="comentario1" style="margin-top:10px;">Comentario para el alumno:</label>
-          <textarea id="comentario1" rows="3" placeholder="Añade retroalimentación sobre esta respuesta..."></textarea>
-          
-          <label for="nota1" style="margin-top:10px;">Calificación (0 a 3.0):</label>
-          <input id="nota1" type="number" min="0" max="3" step="0.1" value="3.0">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <p>Cargando exámenes corregidos...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error card">
+    <p>{{error}}</p>
+    <button class="btn primary" (click)="cargarExamenesCorregidos()">Reintentar</button>
+  </div>
+
+  <!-- Lista de Exámenes Corregidos -->
+  <section *ngIf="!loading && !error" class="examenes-lista">
+    <div *ngIf="examenesFiltrados.length === 0" class="empty-state card">
+      <p>No se encontraron exámenes corregidos con los filtros aplicados.</p>
+    </div>
+
+    <div *ngFor="let examen of examenesFiltrados" class="card examen-item">
+      <div class="examen-header">
+        <h3>{{examen.titulo_examen}}</h3>
+        <div class="examen-meta">
+          <span class="badge" [ngClass]="getBadgeClass(examen.corregido_por)">
+            {{examen.corregido_por}}
+          </span>
+          <span class="calificacion">{{examen.calificacion_final}}/100</span>
         </div>
-        
-        <div class="card pregunta">
-          <label>Pregunta 2 (Valor: 2.0 pts)</label>
-          <p><strong>Consigna:</strong> ¿Qué puerto utiliza el protocolo HTTP?</p>
-          <p><strong>Respuesta del alumno:</strong> 80</p>
-          
-          <label for="comentario2" style="margin-top:10px;">Comentario para el alumno:</label>
-          <textarea id="comentario2" rows="3" placeholder="Añade retroalimentación sobre esta respuesta..."></textarea>
-          
-          <label for="nota2" style="margin-top:10px;">Calificación (0 a 2.0):</label>
-          <input id="nota2" type="number" min="0" max="2" step="0.1" value="2.0">
-        </div>
-
       </div>
-
-      <div class="footer">
-        <button type="submit" class="btn primary">Guardar corrección</button>
+      
+      <div class="examen-info">
+        <p><strong>Curso:</strong> {{examen.curso}}</p>
+        <p><strong>Alumno:</strong> {{examen.alumno_nombre}}</p>
+        <p><strong>Fecha realización:</strong> {{examen.fecha_realizacion | date:'dd/MM/yyyy HH:mm'}}</p>
+        <p><strong>Estado:</strong> <span [ngClass]="getEstadoClass(examen.estado)">{{examen.estado}}</span></p>
       </div>
-    </form>
-    
-    </main>
+      
+      <div class="examen-actions">
+        <button class="btn primary" (click)="editarCorreccion(examen.examen_alumno_id)">
+          ✏️ Editar Corrección
+        </button>
+      </div>
+    </div>
+  </section>
+</main>

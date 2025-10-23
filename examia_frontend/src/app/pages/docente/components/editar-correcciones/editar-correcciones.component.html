@@ -1,0 +1,133 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <button class="icon-btn back" aria-label="Volver" (click)="volverALista()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </button>
+    <h1 class="title">Editar Corrección</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading card">
+    <p>Cargando detalles de la corrección...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error card">
+    <p>{{error}}</p>
+    <button class="btn primary" (click)="volverALista()">Volver a la lista</button>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="success card">
+    <p>{{success}}</p>
+    <p>Redirigiendo a la lista...</p>
+  </div>
+
+  <!-- Formulario de Edición -->
+  <div *ngIf="!loading && !error && detalleCorreccion" class="edicion-container">
+    
+    <!-- Información General -->
+    <section class="card info-general">
+      <h2>{{detalleCorreccion.titulo_examen}}</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>Curso:</strong> {{detalleCorreccion.curso}}
+        </div>
+        <div class="info-item">
+          <strong>Alumno:</strong> {{detalleCorreccion.alumno_nombre}}
+        </div>
+        <div class="info-item">
+          <strong>Fecha realización:</strong> {{detalleCorreccion.fecha_realizacion | date:'dd/MM/yyyy HH:mm'}}
+        </div>
+      </div>
+      
+      <!-- Estadísticas en Tiempo Real -->
+      <div class="estadisticas">
+        <div class="estadistica">
+          <span class="label">Puntaje Total:</span>
+          <span class="valor">{{puntajeTotalActual | number:'1.2-2'}}/{{detalleCorreccion.puntaje_maximo_total | number:'1.2-2'}}</span>
+        </div>
+        <div class="estadistica">
+          <span class="label">Calificación:</span>
+          <span class="valor calificacion" [ngClass]="getColorCalificacion(calificacionActual)">
+            {{calificacionActual | number:'1.2-2'}}/100
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Retroalimentación General -->
+    <section class="card retroalimentacion-general">
+      <h3>Retroalimentación General</h3>
+      <textarea 
+        [(ngModel)]="detalleCorreccion.retroalimentacion_general" 
+        rows="4" 
+        placeholder="Escribe comentarios generales sobre el examen..."
+        class="textarea-general">
+      </textarea>
+    </section>
+
+    <!-- Lista de Preguntas -->
+    <section class="preguntas-lista">
+      <h3>Preguntas del Examen</h3>
+      
+      <div *ngFor="let pregunta of detalleCorreccion.preguntas; let i = index" class="card pregunta-item">
+        <div class="pregunta-header">
+          <h4>Pregunta {{i + 1}} ({{pregunta.puntaje_maximo}} pts)</h4>
+          <div class="puntaje-control">
+            <label>Puntaje:</label>
+            <input 
+              type="number" 
+              [(ngModel)]="pregunta.puntaje_actual" 
+              (change)="onPuntajeChange(pregunta, pregunta.puntaje_actual)"
+              [max]="pregunta.puntaje_maximo"
+              min="0"
+              step="0.5"
+              class="puntaje-input">
+            <span class="puntaje-max">/ {{pregunta.puntaje_maximo}}</span>
+          </div>
+        </div>
+        
+        <div class="pregunta-contenido">
+          <p class="enunciado"><strong>Enunciado:</strong> {{pregunta.enunciado}}</p>
+          <div class="respuesta-alumno">
+            <strong>Respuesta del alumno:</strong>
+            <p class="respuesta-texto">{{pregunta.respuesta_alumno}}</p>
+          </div>
+          
+          <div class="retroalimentacion-pregunta">
+            <label>Retroalimentación específica:</label>
+            <textarea 
+              [(ngModel)]="pregunta.retroalimentacion_actual" 
+              rows="3" 
+              placeholder="Escribe comentarios específicos para esta pregunta..."
+              class="textarea-pregunta">
+            </textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acciones -->
+    <section class="acciones">
+      <button class="btn secondary" (click)="cancelarEdicion()" [disabled]="saving">
+        Cancelar
+      </button>
+      <button class="btn primary" (click)="guardarCorreccion()" [disabled]="saving">
+        <span *ngIf="saving">Guardando...</span>
+        <span *ngIf="!saving">💾 Guardar Corrección</span>
+      </button>
+    </section>
+  </div>
+</main>

@@ -18,6 +18,8 @@ html,body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; 
 }
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 /* ====== TOPBAR ====== */
 .topbar{ 
   height:64px; 

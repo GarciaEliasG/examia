@@ -109,7 +109,7 @@
           <p class="meta">
             <span>{{ getFechaDisplay(eval) }}</span>
             <span *ngIf="eval.estado === 'corregido' && eval.calificacion !== null && eval.calificacion !== undefined">
-              • Calificación: <strong>{{ eval.calificacion }}/10</strong>
+              • Calificación: <strong>{{ eval.calificacion }}/100</strong>
             </span>
             <span *ngIf="tieneRetroalimentacion(eval)">
               • Retroalimentación disponible

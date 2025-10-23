@@ -32,7 +32,7 @@ body{margin:0; background:var(--bg); color:var(--ink);
 .filters select{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
 
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border-radius:999px; border:1px solid var(--primary-600); cursor:pointer; font-weight:800}
-.btn.primary{background:var(--primary); color:#fff}
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
 .btn.ghost{background:#eef4ff; border:1px solid #dbe5ff; color:#0b57d0}
 .btn.danger{border-color:#ef4444; color:#ef4444}
 .btn.danger.ghost{background:#fff5f5; border-color:#fecaca}

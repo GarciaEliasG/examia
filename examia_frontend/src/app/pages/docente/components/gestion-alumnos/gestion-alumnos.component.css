@@ -60,6 +60,8 @@ body {
 }
 .back-btn:hover { background: #f9fafb; }
 
+.btn.primary{ background:var(--primary); color:#000; border-color:#1b5fd1; }
+
 /* ===== TÍTULO ===== */
 .title {
   text-align: center;

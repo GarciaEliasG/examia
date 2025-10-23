@@ -1012,6 +1012,392 @@ class ValidarCodigoView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+# ====== NUEVOS ENDPOINTS PARA EDICIÓN DE CORRECCIONES DOCENTE ======
+
+class ExamenesCorregidosDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Obtener lista de exámenes ya corregidos (por IA o manualmente) 
+        que el docente puede editar
+        """
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Obtener exámenes corregidos de los cursos del profesor
+            examenes_corregidos = ExamenAlumno.objects.filter(
+                examen__profesor_curso__profesor=profesor,
+                calificacion_final__isnull=False  # Ya están corregidos
+            ).select_related(
+                'alumno',
+                'examen',
+                'examen__profesor_curso__curso'
+            ).order_by('-fecha_realizacion')
+            
+            examenes_data = []
+            for ea in examenes_corregidos:
+                fecha_realizacion_str = None
+                if ea.fecha_realizacion:
+                    if hasattr(ea.fecha_realizacion, 'strftime'):
+                        fecha_realizacion_str = ea.fecha_realizacion.strftime('%Y-%m-%dT%H:%M:%S')
+                    else:
+                        fecha_realizacion_str = str(ea.fecha_realizacion)
+                
+                # ✅ CORRECCIÓN MEJORADA: Lógica para determinar corrección
+                corregido_por = 'IA'  # Por defecto
+                
+                # ✅ DETECTAR SI FUE EDITADO MANUALMENTE:
+                # 1. Si la retroalimentación contiene "manual" o "editado manualmente"
+                if ea.retroalimentacion and any(palabra in ea.retroalimentacion.lower() for palabra in ['manual', 'editado manualmente', 'docente']):
+                    corregido_por = 'Manual'
+                
+                # 2. Si NO contiene "automática" y tiene contenido personalizado
+                elif ea.retroalimentacion and 'automática' not in ea.retroalimentacion and len(ea.retroalimentacion.strip()) > 10:
+                    corregido_por = 'Manual'
+                
+                # 3. Verificar si hay respuestas con retroalimentación específica (edición manual)
+                try:
+                    respuestas_con_retro = RespuestaAlumno.objects.filter(
+                        examen_alumno=ea
+                    ).exclude(retroalimentacion='').exclude(retroalimentacion__isnull=True)
+                    
+                    if respuestas_con_retro.exists():
+                        # Si al menos una respuesta tiene retroalimentación no vacía, es manual
+                        corregido_por = 'Manual'
+                except Exception:
+                    # Si hay error al verificar respuestas, mantener el valor actual
+                    pass
+                
+                examenes_data.append({
+                    'examen_alumno_id': ea.id,
+                    'examen_id': ea.examen.id,
+                    'titulo_examen': ea.examen.titulo,
+                    'curso': ea.examen.profesor_curso.curso.nombre,
+                    'curso_id': ea.examen.profesor_curso.curso.id,
+                    'alumno_nombre': ea.alumno.nombre,
+                    'alumno_id': ea.alumno.id,
+                    'fecha_realizacion': fecha_realizacion_str,
+                    'calificacion_final': float(ea.calificacion_final),
+                    'estado': ea.estado,
+                    'fecha_correccion': fecha_realizacion_str,
+                    'corregido_por': corregido_por  # ✅ Ahora mostrará "Manual" cuando fue editado
+                })
+            
+            serializer = ExamenCorregidoListSerializer(examenes_data, many=True)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            print(f"❌ ERROR en ExamenesCorregidosDocenteView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback completo: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+class DetalleCorreccionDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, examen_alumno_id):
+        """
+        Obtener detalles completos de una corrección para editar
+        """
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Obtener examen_alumno y verificar permisos
+            examen_alumno = ExamenAlumno.objects.get(
+                id=examen_alumno_id,
+                examen__profesor_curso__profesor=profesor
+            )
+            
+            # ✅ CORRECCIÓN: Formatear fecha correctamente
+            fecha_realizacion_str = None
+            if examen_alumno.fecha_realizacion:
+                if hasattr(examen_alumno.fecha_realizacion, 'strftime'):
+                    fecha_realizacion_str = examen_alumno.fecha_realizacion.strftime('%Y-%m-%dT%H:%M:%S')
+                else:
+                    fecha_realizacion_str = str(examen_alumno.fecha_realizacion)
+            
+            # Obtener respuestas del alumno con sus correcciones
+            respuestas = RespuestaAlumno.objects.filter(
+                examen_alumno=examen_alumno
+            ).select_related('pregunta')
+            
+            preguntas_data = []
+            for respuesta in respuestas:
+                # ✅ CORRECCIÓN: Manejar campo retroalimentacion que puede no existir
+                try:
+                    retroalimentacion_actual = respuesta.retroalimentacion or ''
+                except AttributeError:
+                    retroalimentacion_actual = ''  # Campo no existe en BD
+                
+                preguntas_data.append({
+                    'respuesta_id': respuesta.id,
+                    'pregunta_id': respuesta.pregunta.id,
+                    'enunciado': respuesta.pregunta.enunciado,
+                    'tipo_pregunta': respuesta.pregunta.tipo,
+                    'puntaje_maximo': float(respuesta.pregunta.puntaje),
+                    'respuesta_alumno': respuesta.respuesta,
+                    'puntaje_actual': float(respuesta.puntaje_obtenido) if respuesta.puntaje_obtenido else 0.0,
+                    'retroalimentacion_actual': retroalimentacion_actual,
+                    'orden': respuesta.pregunta.orden
+                })
+            
+            # Ordenar por orden de pregunta
+            preguntas_data.sort(key=lambda x: x['orden'])
+            
+            response_data = {
+                'examen_alumno_id': examen_alumno.id,
+                'examen_id': examen_alumno.examen.id,
+                'titulo_examen': examen_alumno.examen.titulo,
+                'curso': examen_alumno.examen.profesor_curso.curso.nombre,
+                'alumno_nombre': examen_alumno.alumno.nombre,
+                'alumno_id': examen_alumno.alumno.id,
+                'fecha_realizacion': fecha_realizacion_str,
+                'calificacion_actual': float(examen_alumno.calificacion_final) if examen_alumno.calificacion_final else 0.0,
+                'retroalimentacion_general': examen_alumno.retroalimentacion or '',
+                'preguntas': preguntas_data,
+                'puntaje_total_actual': sum(p['puntaje_actual'] for p in preguntas_data),
+                'puntaje_maximo_total': sum(p['puntaje_maximo'] for p in preguntas_data)
+            }
+            
+            # Validar con serializer de LECTURA
+            serializer = DetalleCorreccionSerializer(response_data)
+            return Response(serializer.data)
+            
+        except ExamenAlumno.DoesNotExist:
+            return Response(
+                {'error': 'Corrección no encontrada o no tienes permisos'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"❌ ERROR en DetalleCorreccionDocenteView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback completo: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class ActualizarCorreccionDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def put(self, request, examen_alumno_id):
+        """
+        Actualizar corrección manualmente (puntajes y retroalimentación)
+        """
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # ✅ DEBUG: Mostrar datos recibidos
+            print("🔍 DATOS RECIBIDOS PARA ACTUALIZAR:")
+            print(f"Examen Alumno ID: {examen_alumno_id}")
+            print(f"Datos recibidos: {request.data}")
+            
+            # Obtener examen_alumno y verificar permisos
+            examen_alumno = ExamenAlumno.objects.get(
+                id=examen_alumno_id,
+                examen__profesor_curso__profesor=profesor
+            )
+
+            # Validar datos con serializer CORREGIDO (WriteSerializer)
+            serializer = ActualizarCorreccionSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(f"❌ ERROR DE VALIDACIÓN: {serializer.errors}")
+                return Response(
+                    {'error': 'Datos inválidos', 'details': serializer.errors}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            data = serializer.validated_data
+            print(f"✅ DATOS VALIDADOS: {data}")
+            
+            # Actualizar cada respuesta/pregunta
+            puntaje_total = 0.0
+            preguntas_actualizadas = 0
+            
+            for pregunta_data in data['preguntas']:
+                try:
+                    respuesta = RespuestaAlumno.objects.get(
+                        id=pregunta_data['respuesta_id'],
+                        examen_alumno=examen_alumno
+                    )
+                    
+                    print(f"📝 Actualizando respuesta {respuesta.id}:")
+                    print(f"   Puntaje anterior: {respuesta.puntaje_obtenido}")
+                    print(f"   Puntaje nuevo: {pregunta_data['puntaje_actual']}")
+                    
+                    # ✅ Validar que el puntaje no supere el máximo de la pregunta
+                    puntaje_maximo = float(respuesta.pregunta.puntaje)
+                    nuevo_puntaje = min(float(pregunta_data['puntaje_actual']), puntaje_maximo)
+                    
+                    print(f"   Puntaje máximo permitido: {puntaje_maximo}")
+                    print(f"   Puntaje final a guardar: {nuevo_puntaje}")
+                    
+                    # Actualizar respuesta
+                    respuesta.puntaje_obtenido = nuevo_puntaje
+                    
+                    # Manejar campo retroalimentacion
+                    try:
+                        respuesta.retroalimentacion = pregunta_data['retroalimentacion_actual']
+                        print(f"   Retroalimentación guardada: {pregunta_data['retroalimentacion_actual'][:50]}...")
+                    except AttributeError:
+                        # Si el campo no existe en el modelo, lo ignoramos
+                        print("⚠️ Campo retroalimentacion no existe en el modelo")
+                    
+                    respuesta.save()
+                    
+                    puntaje_total += nuevo_puntaje
+                    preguntas_actualizadas += 1
+                    
+                    print(f"✅ Respuesta {respuesta.id} actualizada correctamente")
+                    
+                except RespuestaAlumno.DoesNotExist:
+                    print(f"⚠️ Respuesta no encontrada: {pregunta_data['respuesta_id']}")
+                    continue
+                except Exception as e:
+                    print(f"⚠️ Error actualizando respuesta: {e}")
+                    continue
+            
+            # Calcular nueva calificación final (escala 0-100)
+            respuestas_totales = RespuestaAlumno.objects.filter(examen_alumno=examen_alumno)
+            puntaje_maximo_total = sum(
+                float(respuesta.pregunta.puntaje) for respuesta in respuestas_totales
+            )
+            
+            print(f"📊 Estadísticas finales:")
+            print(f"   Puntaje total: {puntaje_total}")
+            print(f"   Puntaje máximo: {puntaje_maximo_total}")
+            
+            if puntaje_maximo_total > 0:
+                nueva_calificacion = (puntaje_total / puntaje_maximo_total) * 100.0
+            else:
+                nueva_calificacion = 0.0
+            
+            print(f"   Nueva calificación: {nueva_calificacion}")
+            
+            # ✅ CORRECCIÓN: Actualizar examen_alumno con indicador de edición MANUAL
+            examen_alumno.calificacion_final = round(nueva_calificacion, 2)
+            
+            # ✅ AGREGAR: Marcar explícitamente como corrección manual
+            retro_general = data.get('retroalimentacion_general', '')
+            
+            # Si no hay retroalimentación general, crear una por defecto que indique edición manual
+            if not retro_general.strip():
+                retro_general = f"Corrección manual del docente. Calificación ajustada a {round(nueva_calificacion, 2)}/100."
+            else:
+                # Si ya hay retroalimentación, asegurarnos de que no tenga "automática"
+                if 'automática' in retro_general:
+                    retro_general = retro_general.replace('automática', 'manual')
+                # Agregar marca de edición manual si no está presente
+                if 'manual' not in retro_general.lower():
+                    retro_general += f" [Editado manualmente - Calificación: {round(nueva_calificacion, 2)}/100]"
+            
+            examen_alumno.retroalimentacion = retro_general
+            examen_alumno.save()
+            
+            print(f"✅ Examen alumno {examen_alumno.id} actualizado correctamente - MARCADO COMO MANUAL")
+            
+            return Response({
+                'success': True,
+                'message': f'Corrección actualizada exitosamente. {preguntas_actualizadas} preguntas modificadas.',
+                'nueva_calificacion': round(nueva_calificacion, 2),
+                'puntaje_total': round(puntaje_total, 2),
+                'puntaje_maximo_total': round(puntaje_maximo_total, 2),
+                'tipo_correccion': 'manual'  # ✅ Indicar explícitamente que ahora es manual
+            })
+            
+        except ExamenAlumno.DoesNotExist:
+            print(f"❌ ExamenAlumno no encontrado: {examen_alumno_id}")
+            return Response(
+                {'error': 'Corrección no encontrada o no tienes permisos'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"❌ ERROR en ActualizarCorreccionDocenteView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback completo: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+class AlumnosCursoDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, curso_id):
+        """
+        Obtener alumnos de un curso específico para filtros
+        """
+        try:
+            # Verificar que es profesor
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Verificar que el profesor tiene acceso al curso
+            if not ProfesorCurso.objects.filter(
+                profesor=profesor, 
+                curso_id=curso_id
+            ).exists():
+                return Response(
+                    {'error': 'No tienes acceso a este curso'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Obtener alumnos inscritos en el curso
+            inscripciones = Inscripcion.objects.filter(
+                curso_id=curso_id
+            ).select_related('alumno')
+            
+            alumnos_data = [
+                {
+                    'id': inscripcion.alumno.id,
+                    'nombre': inscripcion.alumno.nombre,
+                    'email': inscripcion.alumno.email
+                }
+                for inscripcion in inscripciones
+            ]
+            
+            # Validar con serializer
+            serializer = AlumnoCursoSerializer(alumnos_data, many=True)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            print(f"❌ ERROR en AlumnosCursoDocenteView: {str(e)}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+
 # ====== VIEWSETS EXISTENTES ======
 
 class UsuarioViewSet(viewsets.ModelViewSet):
