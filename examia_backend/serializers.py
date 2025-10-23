@@ -213,3 +213,15 @@ class AlumnoCursoSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     nombre = serializers.CharField()
     email = serializers.EmailField()
+
+    # ====== SERIALIZERS PARA NUEVAS VISTAS ======
+
+class MetricasCursoSerializer(serializers.Serializer):
+    curso = serializers.DictField()
+    metricas_generales = serializers.DictField()
+    metricas_examenes = serializers.ListField()
+
+class AlumnosConEvaluacionesSerializer(serializers.Serializer):
+    curso = serializers.DictField()
+    total_alumnos = serializers.IntegerField()
+    alumnos = serializers.ListField()

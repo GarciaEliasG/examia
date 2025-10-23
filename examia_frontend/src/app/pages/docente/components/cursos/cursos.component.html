@@ -116,6 +116,23 @@
 
         <!-- Acciones del curso -->
         <div class="course-actions">
+          <!-- 🆕 NUEVO BOTÓN: Métricas -->
+          <button class="btn ghost sm" (click)="verMetricasCurso(curso.id)" title="Ver métricas del curso">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/>
+            </svg>
+            Métricas
+          </button>
+          
+          <!-- 🆕 NUEVO BOTÓN: Alumnos -->
+          <button class="btn ghost sm" (click)="verAlumnosCurso(curso.id)" title="Ver alumnos del curso">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+              <path d="M16 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm-8-2a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm16 6a1 1 0 0 1-2 0 7 7 0 0 0-14 0 1 1 0 0 1-2 0 9 9 0 0 1 18 0z" fill="currentColor"/>
+            </svg>
+            Alumnos
+          </button>
+          
+          <!-- Botón existente: Detalles -->
           <button class="btn ghost sm" (click)="verCursoDetalles(curso.id)" title="Ver detalles del curso">
             <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
               <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>
@@ -123,13 +140,7 @@
             Detalles
           </button>
           
-          <button class="btn ghost sm" (click)="gestionarAlumnos(curso.id)" title="Gestionar alumnos del curso">
-            <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
-              <path d="M16 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm-8-2a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 6a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm16 6a1 1 0 0 1-2 0 7 7 0 0 0-14 0 1 1 0 0 1-2 0 9 9 0 0 1 18 0z" fill="currentColor"/>
-            </svg>
-            Alumnos
-          </button>
-          
+          <!-- Botón existente: Crear Evaluación -->
           <button class="btn primary sm" (click)="crearEvaluacion(curso.id)" title="Crear evaluación para este curso">
             <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>

@@ -55,4 +55,6 @@ urlpatterns = [
     path('api/docente/correccion/<int:examen_alumno_id>/', DetalleCorreccionDocenteView.as_view(), name='detalle-correccion-docente'),
     path('api/docente/correccion/<int:examen_alumno_id>/actualizar/', ActualizarCorreccionDocenteView.as_view(), name='actualizar-correccion-docente'),
     path('api/docente/cursos/<int:curso_id>/alumnos/', AlumnosCursoDocenteView.as_view(), name='alumnos-curso-docente'),
+    path('api/docente/cursos/<int:curso_id>/metricas/', MetricasCursoView.as_view(), name='metricas-curso'),
+    path('api/docente/cursos/<int:curso_id>/alumnos-evaluaciones/', AlumnosConEvaluacionesView.as_view(), name='alumnos-evaluaciones'),
 ]

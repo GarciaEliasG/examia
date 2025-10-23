@@ -1397,6 +1397,349 @@ class AlumnosCursoDocenteView(APIView):
             )
 
 
+# ====== NUEVOS ENDPOINTS PARA MÉTRICAS Y ALUMNOS ======
+
+class MetricasCursoView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, curso_id):
+        """
+        Métricas completas para un curso específico:
+        - Nota promedio por examen
+        - Preguntas con menor puntaje
+        - Distribución de calificaciones
+        - Estadísticas de participación
+        """
+        try:
+            # 1. Verificar que es profesor y tiene acceso al curso
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Verificar acceso al curso
+            if not ProfesorCurso.objects.filter(
+                profesor=profesor, 
+                curso_id=curso_id
+            ).exists():
+                return Response(
+                    {'error': 'No tienes acceso a este curso'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # 2. Obtener curso
+            curso = Curso.objects.get(id=curso_id)
+            
+            # 3. Obtener exámenes del curso
+            examenes = Examen.objects.filter(
+                profesor_curso__curso=curso,
+                profesor_curso__profesor=profesor
+            ).prefetch_related(
+                'preguntas',
+                'examenalumno_set'
+            )
+            
+            # 4. Calcular métricas por examen
+            metricas_examenes = []
+            for examen in examenes:
+                # Obtener todas las entregas corregidas de este examen
+                entregas_corregidas = ExamenAlumno.objects.filter(
+                    examen=examen,
+                    calificacion_final__isnull=False
+                )
+                
+                if entregas_corregidas.exists():
+                    # Calcular nota promedio
+                    calificaciones = [float(ea.calificacion_final) for ea in entregas_corregidas]
+                    nota_promedio = sum(calificaciones) / len(calificaciones)
+                    
+                    # Encontrar preguntas con menor puntaje
+                    preguntas_problematicas = self.obtener_preguntas_problematicas(examen)
+                    
+                    # Estadísticas de participación
+                    total_alumnos_curso = Inscripcion.objects.filter(curso=curso).count()
+                    porcentaje_participacion = (entregas_corregidas.count() / total_alumnos_curso) * 100
+                    
+                    metricas_examenes.append({
+                        'examen_id': examen.id,
+                        'titulo': examen.titulo,
+                        'nota_promedio': round(nota_promedio, 2),
+                        'total_entregas': entregas_corregidas.count(),
+                        'porcentaje_participacion': round(porcentaje_participacion, 2),
+                        'preguntas_problematicas': preguntas_problematicas,
+                        'distribucion_calificaciones': self.obtener_distribucion_calificaciones(calificaciones)
+                    })
+            
+            # 5. Métricas generales del curso
+            metricas_generales = {
+                'total_examenes': examenes.count(),
+                'total_alumnos': Inscripcion.objects.filter(curso=curso).count(),
+                'total_evaluaciones_corregidas': ExamenAlumno.objects.filter(
+                    examen__profesor_curso__curso=curso,
+                    calificacion_final__isnull=False
+                ).count(),
+                'nota_promedio_curso': self.calcular_nota_promedio_curso(curso, profesor),
+                'examenes_sin_corregir': ExamenAlumno.objects.filter(
+                    examen__profesor_curso__curso=curso,
+                    calificacion_final__isnull=True,
+                    fecha_realizacion__isnull=False
+                ).count()
+            }
+            
+            return Response({
+                'curso': {
+                    'id': curso.id,
+                    'nombre': curso.nombre,
+                    'descripcion': curso.descripcion
+                },
+                'metricas_generales': metricas_generales,
+                'metricas_examenes': metricas_examenes
+            })
+            
+        except Curso.DoesNotExist:
+            return Response(
+                {'error': 'Curso no encontrado'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"❌ ERROR en MetricasCursoView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def obtener_preguntas_problematicas(self, examen):
+        """Encuentra las preguntas con menor puntaje promedio"""
+        preguntas_data = []
+        
+        for pregunta in examen.preguntas.all():
+            # Obtener respuestas de alumnos para esta pregunta
+            respuestas = RespuestaAlumno.objects.filter(
+                pregunta=pregunta,
+                examen_alumno__examen=examen,
+                puntaje_obtenido__isnull=False
+            )
+            
+            if respuestas.exists():
+                puntajes = [float(r.puntaje_obtenido) for r in respuestas]
+                puntaje_promedio = sum(puntajes) / len(puntajes)
+                puntaje_maximo = float(pregunta.puntaje)
+                porcentaje_promedio = (puntaje_promedio / puntaje_maximo) * 100
+                
+                preguntas_data.append({
+                    'pregunta_id': pregunta.id,
+                    'enunciado': pregunta.enunciado,
+                    'tipo': pregunta.tipo,
+                    'puntaje_promedio': round(puntaje_promedio, 2),
+                    'puntaje_maximo': puntaje_maximo,
+                    'porcentaje_promedio': round(porcentaje_promedio, 2),
+                    'total_respuestas': len(puntajes)
+                })
+        
+        # Ordenar por porcentaje más bajo (más problemáticas primero)
+        preguntas_data.sort(key=lambda x: x['porcentaje_promedio'])
+        return preguntas_data[:5]  # Top 5 más problemáticas
+    
+    def obtener_distribucion_calificaciones(self, calificaciones):
+        """Calcula distribución de calificaciones en rangos"""
+        if not calificaciones:
+            return {}
+        
+        rangos = {
+            'excelente': len([c for c in calificaciones if c >= 80]),
+            'bueno': len([c for c in calificaciones if 60 <= c < 80]),
+            'regular': len([c for c in calificaciones if 40 <= c < 60]),
+            'insuficiente': len([c for c in calificaciones if c < 40])
+        }
+        
+        total = len(calificaciones)
+        return {
+            'excelente': rangos['excelente'],
+            'bueno': rangos['bueno'], 
+            'regular': rangos['regular'],
+            'insuficiente': rangos['insuficiente'],
+            'porcentaje_excelente': round((rangos['excelente'] / total) * 100, 2) if total > 0 else 0,
+            'porcentaje_bueno': round((rangos['bueno'] / total) * 100, 2) if total > 0 else 0,
+            'porcentaje_regular': round((rangos['regular'] / total) * 100, 2) if total > 0 else 0,
+            'porcentaje_insuficiente': round((rangos['insuficiente'] / total) * 100, 2) if total > 0 else 0
+        }
+    
+    def calcular_nota_promedio_curso(self, curso, profesor):
+        """Calcula la nota promedio de todos los exámenes del curso"""
+        examenes_alumno = ExamenAlumno.objects.filter(
+            examen__profesor_curso__curso=curso,
+            examen__profesor_curso__profesor=profesor,
+            calificacion_final__isnull=False
+        )
+        
+        if examenes_alumno.exists():
+            calificaciones = [float(ea.calificacion_final) for ea in examenes_alumno]
+            return round(sum(calificaciones) / len(calificaciones), 2)
+        return 0
+
+class AlumnosConEvaluacionesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, curso_id):
+        """
+        Listado de alumnos con sus evaluaciones realizadas
+        - Filtro por estado de evaluación
+        - Acceso directo a correcciones
+        - Estadísticas individuales
+        """
+        try:
+            # 1. Verificar que es profesor y tiene acceso al curso
+            if not hasattr(request.user, 'profesor'):
+                return Response(
+                    {'error': 'Usuario no es un profesor'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            profesor = request.user.profesor
+            
+            # Verificar acceso al curso
+            if not ProfesorCurso.objects.filter(
+                profesor=profesor, 
+                curso_id=curso_id
+            ).exists():
+                return Response(
+                    {'error': 'No tienes acceso a este curso'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # 2. Obtener curso
+            curso = Curso.objects.get(id=curso_id)
+            
+            # 3. Obtener alumnos inscritos en el curso
+            inscripciones = Inscripcion.objects.filter(
+                curso=curso
+            ).select_related('alumno')
+            
+            # 4. Obtener todos los exámenes del curso para este profesor
+            examenes_curso = Examen.objects.filter(
+                profesor_curso__curso=curso,
+                profesor_curso__profesor=profesor
+            )
+            
+            # 5. Construir datos de alumnos con sus evaluaciones
+            alumnos_data = []
+            for inscripcion in inscripciones:
+                alumno = inscripcion.alumno
+                
+                # Obtener evaluaciones de este alumno en el curso
+                evaluaciones_alumno = ExamenAlumno.objects.filter(
+                    alumno=alumno,
+                    examen__in=examenes_curso
+                ).select_related('examen')
+                
+                # Estadísticas del alumno
+                evaluaciones_corregidas = evaluaciones_alumno.filter(
+                    calificacion_final__isnull=False
+                )
+                evaluaciones_pendientes = evaluaciones_alumno.filter(
+                    calificacion_final__isnull=True,
+                    fecha_realizacion__isnull=False
+                )
+                evaluaciones_activas = evaluaciones_alumno.filter(
+                    calificacion_final__isnull=True,
+                    fecha_realizacion__isnull=True
+                )
+                
+                # Calcular promedio del alumno
+                promedio_alumno = 0
+                if evaluaciones_corregidas.exists():
+                    calificaciones = [float(ea.calificacion_final) for ea in evaluaciones_corregidas]
+                    promedio_alumno = round(sum(calificaciones) / len(calificaciones), 2)
+                
+                # Detalle de evaluaciones
+                detalle_evaluaciones = []
+                for evaluacion in evaluaciones_alumno:
+                    estado = 'activo'
+                    if evaluacion.calificacion_final is not None:
+                        estado = 'corregido'
+                    elif evaluacion.fecha_realizacion is not None:
+                        estado = 'pendiente'
+                    
+                    detalle_evaluaciones.append({
+                        'examen_alumno_id': evaluacion.id,
+                        'examen_id': evaluacion.examen.id,
+                        'titulo_examen': evaluacion.examen.titulo,
+                        'fecha_realizacion': evaluacion.fecha_realizacion.strftime('%Y-%m-%d %H:%M') if evaluacion.fecha_realizacion else None,
+                        'calificacion': float(evaluacion.calificacion_final) if evaluacion.calificacion_final else None,
+                        'estado': estado,
+                        'puede_editar': evaluacion.calificacion_final is not None  # Solo se pueden editar las corregidas
+                    })
+                
+                alumnos_data.append({
+                    'alumno_id': alumno.id,
+                    'nombre': alumno.nombre,
+                    'email': alumno.email,
+                    'fecha_inscripcion': inscripcion.fecha_inscripcion,
+                    'estadisticas': {
+                        'total_evaluaciones': evaluaciones_alumno.count(),
+                        'evaluaciones_corregidas': evaluaciones_corregidas.count(),
+                        'evaluaciones_pendientes': evaluaciones_pendientes.count(),
+                        'evaluaciones_activas': evaluaciones_activas.count(),
+                        'promedio_general': promedio_alumno
+                    },
+                    'evaluaciones': detalle_evaluaciones
+                })
+            
+            # 6. Aplicar filtros si existen
+            filtro_estado = request.GET.get('estado', '')
+            filtro_alumno = request.GET.get('alumno', '')
+            
+            if filtro_estado:
+                alumnos_data = self.filtrar_por_estado(alumnos_data, filtro_estado)
+            
+            if filtro_alumno:
+                alumnos_data = self.filtrar_por_alumno(alumnos_data, filtro_alumno)
+            
+            return Response({
+                'curso': {
+                    'id': curso.id,
+                    'nombre': curso.nombre
+                },
+                'total_alumnos': len(alumnos_data),
+                'alumnos': alumnos_data
+            })
+            
+        except Curso.DoesNotExist:
+            return Response(
+                {'error': 'Curso no encontrado'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"❌ ERROR en AlumnosConEvaluacionesView: {str(e)}")
+            import traceback
+            print(f"🔍 Traceback: {traceback.format_exc()}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def filtrar_por_estado(self, alumnos_data, estado):
+        """Filtra alumnos por estado de evaluación"""
+        if estado == 'corregido':
+            return [alumno for alumno in alumnos_data if alumno['estadisticas']['evaluaciones_corregidas'] > 0]
+        elif estado == 'pendiente':
+            return [alumno for alumno in alumnos_data if alumno['estadisticas']['evaluaciones_pendientes'] > 0]
+        elif estado == 'activo':
+            return [alumno for alumno in alumnos_data if alumno['estadisticas']['evaluaciones_activas'] > 0]
+        return alumnos_data
+    
+    def filtrar_por_alumno(self, alumnos_data, nombre_alumno):
+        """Filtra alumnos por nombre"""
+        return [alumno for alumno in alumnos_data if nombre_alumno.lower() in alumno['nombre'].lower()]
+
+
+
+
 
 # ====== VIEWSETS EXISTENTES ======
 

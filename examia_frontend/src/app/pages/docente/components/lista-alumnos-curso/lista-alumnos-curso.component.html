@@ -1,0 +1,180 @@
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
+  </div>
+  <button class="icon-btn profile" aria-label="Perfil">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 2.5-9 5.5A1.5 1.5 0 0 0 4.5 21h15A1.5 1.5 0 0 0 21 19.5C21 16.5 17 14 12 14Z"/>
+    </svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <div class="header-row">
+    <button class="icon-btn back" aria-label="Volver" (click)="volverACursos()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7l-5 5 5 5V7z"/></svg>
+    </button>
+    <h1 class="title">Alumnos del Curso</h1>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando alumnos del curso...</p>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="error && !loading" class="error-state">
+    <h3>⚠️ Error</h3>
+    <p>{{ error }}</p>
+    <button class="btn primary" (click)="recargar()">Reintentar</button>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="datos && !loading && !error">
+    
+    <!-- Información del curso -->
+    <div class="curso-info card">
+      <div class="curso-header">
+        <h2>{{ datos.curso.nombre }}</h2>
+        <div class="curso-stats">
+          <span class="total-alumnos">{{ datos.total_alumnos }} alumnos</span>
+        </div>
+      </div>
+      <div class="curso-actions">
+        <button class="btn secondary" (click)="navegarAMetricas()">
+          📊 Ver Métricas
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <section class="card filtros">
+      <h3>Filtrar Alumnos</h3>
+      <div class="filtros-grid">
+        <div class="filtro-group">
+          <label for="filtroEstado">Estado:</label>
+          <select id="filtroEstado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option *ngFor="let estado of estados" [value]="estado.value">
+              {{ estado.label }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="filtro-group">
+          <label for="filtroAlumno">Alumno:</label>
+          <input type="text" id="filtroAlumno" [(ngModel)]="filtroAlumno" 
+                 (input)="aplicarFiltros()" placeholder="Buscar alumno...">
+        </div>
+        
+        <div class="filtro-group">
+          <label for="filtroEvaluacion">Evaluación:</label>
+          <input type="text" id="filtroEvaluacion" [(ngModel)]="filtroEvaluacion" 
+                 placeholder="Buscar evaluación...">
+        </div>
+        
+        <div class="filtro-actions">
+          <button class="btn secondary" (click)="limpiarFiltros()">Limpiar Filtros</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lista de alumnos -->
+    <section class="alumnos-lista">
+      <div *ngIf="alumnosFiltrados.length === 0" class="empty-state">
+        <p>No se encontraron alumnos con los filtros aplicados.</p>
+      </div>
+
+      <div *ngFor="let alumno of alumnosFiltrados" class="card alumno-item">
+        <!-- Header del alumno -->
+        <div class="alumno-header">
+          <div class="alumno-info">
+            <h3 (click)="verDetalleAlumno(alumno.alumno_id)" class="alumno-nombre">
+              {{ alumno.nombre }}
+            </h3>
+            <p class="alumno-email">{{ alumno.email }}</p>
+            <p class="alumno-fecha">Inscrito: {{ alumno.fecha_inscripcion | date:'dd/MM/yyyy' }}</p>
+          </div>
+          
+          <div class="alumno-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ alumno.estadisticas.total_evaluaciones }}</span>
+              <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value text-success">{{ alumno.estadisticas.evaluaciones_corregidas }}</span>
+              <span class="stat-label">Corregidas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value text-warning">{{ alumno.estadisticas.evaluaciones_pendientes }}</span>
+              <span class="stat-label">Pendientes</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" [ngClass]="getColorCalificacion(alumno.estadisticas.promedio_general)">
+                {{ alumno.estadisticas.promedio_general }}
+              </span>
+              <span class="stat-label">Promedio</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluaciones del alumno -->
+        <div class="evaluaciones-section" *ngIf="getEvaluacionesFiltradas(alumno).length > 0">
+          <h4>Evaluaciones Realizadas</h4>
+          <div class="evaluaciones-grid">
+            <div *ngFor="let evaluacion of getEvaluacionesFiltradas(alumno)" 
+                 class="evaluacion-item"
+                 [ngClass]="{'evaluacion-corregida': evaluacion.estado === 'corregido'}">
+              
+              <div class="evaluacion-info">
+                <h5 class="evaluacion-titulo">{{ evaluacion.titulo_examen }}</h5>
+                <div class="evaluacion-meta">
+                  <span class="evaluacion-estado" [ngClass]="getEstadoEvaluacion(evaluacion.estado)">
+                    {{ getTextoEstado(evaluacion.estado) }}
+                  </span>
+                  <span *ngIf="evaluacion.fecha_realizacion" class="evaluacion-fecha">
+                    {{ evaluacion.fecha_realizacion | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="evaluacion-resultados">
+                <div *ngIf="evaluacion.calificacion !== null" class="evaluacion-calificacion">
+                  <span class="calificacion-valor" [ngClass]="getColorCalificacion(evaluacion.calificacion)">
+                    {{ evaluacion.calificacion }}/100
+                  </span>
+                </div>
+                <div *ngIf="evaluacion.calificacion === null" class="evaluacion-sin-calificar">
+                  <span class="sin-calificar-text">Sin calificar</span>
+                </div>
+              </div>
+
+              <div class="evaluacion-actions">
+                <button *ngIf="evaluacion.puede_editar" 
+                        class="btn primary sm"
+                        (click)="editarCorreccion(evaluacion.examen_alumno_id)">
+                  ✏️ Editar
+                </button>
+                <button *ngIf="!evaluacion.puede_editar && evaluacion.estado === 'pendiente'" 
+                        class="btn secondary sm"
+                        disabled>
+                  ⏳ Pendiente
+                </button>
+                <button *ngIf="evaluacion.estado === 'activo'" 
+                        class="btn secondary sm"
+                        disabled>
+                  📝 Activo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje si no hay evaluaciones -->
+        <div *ngIf="getEvaluacionesFiltradas(alumno).length === 0" class="sin-evaluaciones">
+          <p>No hay evaluaciones que coincidan con los filtros.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

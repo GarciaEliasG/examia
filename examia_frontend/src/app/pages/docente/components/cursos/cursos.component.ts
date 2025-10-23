@@ -8,7 +8,7 @@ import { DocenteService } from '../../../../services/docente';
 @Component({
   selector: 'app-cursos-docente',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule,NgIf],
+  imports: [CommonModule, FormsModule, RouterModule, NgIf],
   templateUrl: './cursos.component.html',
   styleUrls: ['./cursos.component.css']
 })
@@ -172,6 +172,15 @@ export class CursosDocente implements OnInit {
       descripcion: '', 
       // ELIMINADO: codigo
     };
+  }
+
+  // 🆕 NUEVOS MÉTODOS PARA LAS NUEVAS FUNCIONALIDADES
+  verMetricasCurso(cursoId: number) {
+    this.router.navigate(['/docente/cursos', cursoId, 'metricas']);
+  }
+
+  verAlumnosCurso(cursoId: number) {
+    this.router.navigate(['/docente/cursos', cursoId, 'alumnos']);
   }
 
   verCursoDetalles(cursoId: number) {
