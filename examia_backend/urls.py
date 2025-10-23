@@ -42,6 +42,7 @@ urlpatterns = [
     path('api/alumno/examen/<int:examen_alumno_id>/envio/', ExamenEnvioView.as_view(), name='examen-envio'),
     path('api/alumno/examen/<int:examen_alumno_id>/resultado/', ExamenResultadoView.as_view(), name='examen-resultado'),
     path('api/alumno/examen/<int:examen_alumno_id>/retroalimentacion/', ExamenRetroalimentacionView.as_view(), name='examen-retroalimentacion'),
+    path('api/alumno/validar-codigo/', ValidarCodigoView.as_view(), name='validar-codigo'),
     
     #urls docente
     path('api/docente/panel/', PanelDocenteView.as_view(), name='panel-docente'),

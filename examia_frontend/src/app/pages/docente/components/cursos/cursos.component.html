@@ -23,7 +23,7 @@
 
   <!-- Barra de acciones -->
   <div class="actions-bar">
-    <button class="btn primary" (click)="abrirCrearCursoModal()">
+    <button class="btn ghost" (click)="abrirCrearCursoModal()">
       <svg viewBox="0 0 24 24" width="18" height="18" style="margin-right: 8px;">
         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
       </svg>
@@ -46,7 +46,7 @@
   <div *ngIf="hasError && !isLoading" class="error-state">
     <h3>⚠️ Error al cargar cursos</h3>
     <p>{{ error }}</p>
-    <button class="btn primary" (click)="recargar()">Reintentar</button>
+    <button class="btn ghost" (click)="recargar()">Reintentar</button>
   </div>
 
   <!-- Lista de cursos -->
@@ -79,6 +79,22 @@
         
         <!-- Descripción -->
         <p class="course-desc">{{ curso.descripcion }}</p>
+        
+        <!-- Sección de código de acceso -->
+        <div class="codigo-acceso-section">
+          <div class="codigo-label">Código de acceso:</div>
+          <div class="codigo-value" [class.copied]="codigoCopiado[curso.id]">
+            <span class="codigo-text">{{ curso.codigo_acceso || 'Generando...' }}</span>
+            <button 
+              class="btn-copy" 
+              (click)="copiarCodigo(curso.codigo_acceso, curso.id)"
+              [disabled]="!curso.codigo_acceso"
+              title="Copiar código">
+              {{ codigoCopiado[curso.id] ? '✓' : '📋' }}
+            </button>
+          </div>
+          <small class="codigo-help">Los alumnos usan este código para unirse al curso</small>
+        </div>
         
         <!-- Estadísticas -->
         <div class="course-stats">
@@ -125,10 +141,10 @@
     </div>
   </section>
 
-  <!-- Modal Crear Curso -->
+  <!-- Modal Crear Curso - ESTRUCTURA CORREGIDA -->
   <div *ngIf="showCrearCursoModal" class="modal-overlay">
     <div class="modal-backdrop" (click)="cerrarCrearCursoModal()"></div>
-    <div class="modal-card">
+    <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Crear Nuevo Curso</h3>
         <button class="modal-close" (click)="cerrarCrearCursoModal()" aria-label="Cerrar">
@@ -160,24 +176,12 @@
             placeholder="Describe el contenido y objetivos del curso..."
             rows="3"></textarea>
         </div>
-        
-        <div class="form-group">
-          <label for="codigoCurso">Código del Curso</label>
-          <input 
-            type="text" 
-            id="codigoCurso" 
-            [(ngModel)]="nuevoCurso.codigo" 
-            name="codigo"
-            placeholder="Ej: MAT101 (se genera automáticamente si está vacío)"
-            style="text-transform: uppercase;">
-          <small class="form-hint">Dejá vacío para generar un código automático</small>
-        </div>
 
         <div class="modal-actions">
           <button type="button" class="btn ghost" (click)="cerrarCrearCursoModal()">
             Cancelar
           </button>
-          <button type="submit" class="btn primary">
+          <button type="submit" class="btn ghost">
             Crear Curso
           </button>
         </div>

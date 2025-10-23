@@ -1,14 +1,14 @@
 // pages/docente/components/cursos/cursos.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocenteService } from '../../../../services/docente';
 
 @Component({
   selector: 'app-cursos-docente',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule,NgIf],
   templateUrl: './cursos.component.html',
   styleUrls: ['./cursos.component.css']
 })
@@ -18,11 +18,12 @@ export class CursosDocente implements OnInit {
   error: string = '';
   hasError: boolean = false;
   showCrearCursoModal: boolean = false;
+  codigoCopiado: { [key: number]: boolean } = {}; // NUEVO: Control de códigos copiados
   
   nuevoCurso = {
     nombre: '',
     descripcion: '',
-    codigo: ''
+    // ELIMINADO: codigo - ahora se genera automáticamente en el backend
   };
 
   constructor(
@@ -76,6 +77,7 @@ export class CursosDocente implements OnInit {
         nombre: 'Matemáticas Avanzadas',
         descripcion: 'Curso de matemáticas para nivel avanzado',
         codigo: 'MAT101',
+        codigo_acceso: 'MAT123', // NUEVO: Código de acceso
         cantidad_alumnos: 25,
         cantidad_examenes: 2,
         estado: 'activo',
@@ -86,6 +88,7 @@ export class CursosDocente implements OnInit {
         nombre: 'Programación I',
         descripcion: 'Introducción a la programación con Python',
         codigo: 'PROG101',
+        codigo_acceso: 'PRO456', // NUEVO: Código de acceso
         cantidad_alumnos: 30,
         cantidad_examenes: 3,
         estado: 'activo',
@@ -96,6 +99,7 @@ export class CursosDocente implements OnInit {
         nombre: 'Base de Datos',
         descripcion: 'Fundamentos de bases de datos relacionales',
         codigo: 'BD101',
+        codigo_acceso: 'BD789', // NUEVO: Código de acceso
         cantidad_alumnos: 20,
         cantidad_examenes: 1,
         estado: 'activo',
@@ -110,16 +114,13 @@ export class CursosDocente implements OnInit {
       return;
     }
 
-    // Generar código automático si no se proporciona
-    if (!this.nuevoCurso.codigo.trim()) {
-      this.nuevoCurso.codigo = this.generarCodigoCurso(this.nuevoCurso.nombre);
-    }
+    // ELIMINADO: Generación manual de código - ahora lo hace el backend
 
     this.docenteService.crearCurso(this.nuevoCurso).subscribe({
       next: (response) => {
         console.log('✅ Curso creado:', response);
         this.cerrarCrearCursoModal();
-        this.cargarCursos(); // Recargar la lista
+        this.cargarCursos(); // Recargar la lista para ver el código generado
       },
       error: (error) => {
         console.error('❌ Error creando curso:', error);
@@ -128,20 +129,36 @@ export class CursosDocente implements OnInit {
     });
   }
 
-  private generarCodigoCurso(nombre: string): string {
-    const palabras = nombre.split(' ');
-    let codigo = '';
-    
-    if (palabras.length >= 2) {
-      codigo = palabras[0].substring(0, 3).toUpperCase() + 
-               palabras[1].substring(0, 3).toUpperCase();
-    } else {
-      codigo = nombre.substring(0, 6).toUpperCase();
+  // NUEVO: Método para copiar código al portapapeles
+  async copiarCodigo(codigo: string, cursoId: number) {
+    if (!codigo) {
+      alert('El código aún no está disponible');
+      return;
     }
-    
-    // Agregar números aleatorios para hacerlo único
-    const randomNum = Math.floor(Math.random() * 90) + 10;
-    return codigo + randomNum;
+
+    try {
+      await navigator.clipboard.writeText(codigo);
+      this.codigoCopiado[cursoId] = true;
+      
+      // Resetear después de 2 segundos
+      setTimeout(() => {
+        this.codigoCopiado[cursoId] = false;
+      }, 2000);
+      
+    } catch (err) {
+      // Fallback para navegadores antiguos
+      const textArea = document.createElement('textarea');
+      textArea.value = codigo;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      this.codigoCopiado[cursoId] = true;
+      setTimeout(() => {
+        this.codigoCopiado[cursoId] = false;
+      }, 2000);
+    }
   }
 
   abrirCrearCursoModal() {
@@ -153,7 +170,7 @@ export class CursosDocente implements OnInit {
     this.nuevoCurso = { 
       nombre: '', 
       descripcion: '', 
-      codigo: '' 
+      // ELIMINADO: codigo
     };
   }
 

@@ -23,8 +23,14 @@ export class DocenteService {
   }
 
   crearCurso(cursoData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cursos/crear/`, cursoData);
-  }
+  // Enviar solo nombre y descripción - el código se genera en el backend
+  const data = {
+    nombre: cursoData.nombre,
+    descripcion: cursoData.descripcion
+    // ELIMINADO: codigo
+  };
+  return this.http.post(`${this.apiUrl}/cursos/crear/`, data);
+}
 
   // Gestión de exámenes
   getExamenes(): Observable<any> {
@@ -46,4 +52,7 @@ export class DocenteService {
   actualizarCalificacion(correccionData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/correccion/actualizar/`, correccionData);
   }
+
+
+
 }

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Alumno, AlumnoWrapper } from '../models/alumno.model';
 
 const baseUrl = 'http://localhost:8000/api/alumnos/';
+const apiUrl = 'http://localhost:8000/api';
 
 @Injectable({
   providedIn: 'root'
@@ -35,5 +36,11 @@ export class AlumnoService {
   // MÉTODO NUEVO: Buscar alumno por usuario ID
   getByUsuarioId(usuarioId: number): Observable<Alumno> {
     return this.http.get<Alumno>(`${baseUrl}?usuario=${usuarioId}`);
+  }
+
+  validarCodigo(codigo: string): Observable<any> {
+    const url = `${apiUrl}/alumno/validar-codigo/`;
+    console.log('🔗 URL de validación:', url);
+    return this.http.post(url, { codigo: codigo });
   }
 }

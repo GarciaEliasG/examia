@@ -354,7 +354,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,11 +369,12 @@
   bottom: 0;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
+  z-index: 1;
 }
 
 .modal-card {
   position: relative;
-  z-index: 1001;
+  z-index: 10000;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: 0 24px 80px rgba(0,0,0,.3);
@@ -382,6 +383,7 @@
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.2s ease-out;
+  background-color: #fff;
 }
 
 @keyframes modalSlideIn {
@@ -561,3 +563,173 @@
     width: 100%;
   }
 }
+
+.codigo-acceso-section {
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.codigo-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 0.5rem;
+}
+
+.codigo-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.codigo-value.copied {
+  border-color: var(--success);
+  background: #f0fdf4;
+}
+
+.codigo-text {
+  color: #0c4a6e;
+  letter-spacing: 2px;
+}
+
+.btn-copy {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.btn-copy:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.btn-copy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.codigo-help {
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: block;
+  line-height: 1.4;
+}
+
+/* ... (mantener el resto de estilos existentes) ... */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .course-stats {
+    gap: 16px;
+  }
+  
+  .course-actions {
+    flex-direction: column;
+  }
+  
+  .course-actions .btn {
+    min-width: auto;
+  }
+  
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .modal-card {
+    max-height: 95vh;
+  }
+  
+  .modal-header,
+  .modal-form {
+    padding: 20px;
+  }
+  
+  /* NUEVO: Responsive para código de acceso */
+  .codigo-value {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .codigo-text {
+    letter-spacing: 1px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-row .icon-btn.back {
+    position: static;
+    margin-right: 12px;
+  }
+  
+  .header-row {
+    justify-content: flex-start;
+  }
+  
+  .header-row .title {
+    text-align: left;
+    flex: none;
+  }
+  
+  .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .actions-bar .btn {
+    justify-content: center;
+  }
+  
+  .course-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .course-status {
+    align-self: flex-start;
+  }
+  
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-actions .btn {
+    width: 100%;
+  }
+  
+  /* NUEVO: Mobile para código de acceso */
+  .codigo-value {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .btn-copy {
+    align-self: stretch;
+  }
+}
+

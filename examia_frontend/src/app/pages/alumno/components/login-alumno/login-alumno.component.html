@@ -4,7 +4,7 @@
     <img src="assets/images/logo.png" alt="Logo Examia" class="logo">
   </div>
   <div class="top-actions">
-    <a routerLink="/alumno/panel" class="btn-ghost">Ya tengo código</a>
+    <button (click)="irAlPanel()" class="btn-ghost">Ya tengo cursos</button>
   </div>
 </header>
 
@@ -19,6 +19,17 @@
     <h1 class="ingreso-title">Ingresá el código<br>del profesor</h1>
     <p class="ingreso-sub">Con este código te conectamos a tu curso.</p>
 
+    <!-- Mensaje de éxito -->
+    <div *ngIf="success" class="alert success">
+      <span>✅ {{ success }}</span>
+      <p>Redirigiendo al panel...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="error" class="alert error">
+      <span>❌ {{ error }}</span>
+    </div>
+
     <form (ngSubmit)="onSubmit($event)" class="form-field">
       <input 
         [(ngModel)]="codigo"
@@ -26,19 +37,24 @@
         name="codigo"
         class="code-input" 
         type="text" 
-        placeholder="Ej: MAT123"
+        placeholder="Ej: X8GEHW"
         autocomplete="one-time-code" 
         maxlength="10" 
-        required>
+        required
+        [disabled]="isLoading">
       
       <button 
         class="btn-primary" 
         type="submit" 
-        [disabled]="!isCodeValid">
-        Conectar
+        [disabled]="!isCodeValid || isLoading">
+        
+        <span *ngIf="!isLoading">Conectar al curso</span>
+        <span *ngIf="isLoading">Validando código...</span>
       </button>
       
-      <div class="help">Formato sugerido: 3 letras + 3 números (p. ej., MAT123).</div>
+      <div class="help">
+        Pedí el código de acceso a tu profesor. Ejemplo: X8GEHW
+      </div>
     </form>
   </section>
 </main>

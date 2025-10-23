@@ -27,9 +27,18 @@ class Profesor(models.Model):
 class Curso(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
+    codigo_acceso = models.CharField(max_length=10, unique=True, blank=True, null=True)  # ✅ AGREGAR ESTO
 
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+        if not self.codigo_acceso:
+            # Generar código automáticamente si no existe
+            import random
+            import string
+            self.codigo_acceso = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        super().save(*args, **kwargs)
 
 class Inscripcion(models.Model):
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)

@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q, Count
 from datetime import date, datetime
+from django.utils import timezone
 import json
 import threading
 
@@ -725,6 +726,7 @@ class CursosDocenteView(APIView):
                     'nombre': curso.nombre,
                     'descripcion': curso.descripcion,
                     'codigo': f"{curso.nombre[:3].upper()}001",
+                    'codigo_acceso': curso.codigo_acceso,
                     'cantidad_alumnos': curso.cantidad_alumnos,
                     'cantidad_examenes': cantidad_examenes,
                     'estado': 'activo',
@@ -749,7 +751,6 @@ class CrearCursoView(APIView):
             
             nombre = request.data.get('nombre')
             descripcion = request.data.get('descripcion', '')
-            codigo = request.data.get('codigo', '').upper()
             
             if not nombre:
                 return Response(
@@ -757,18 +758,30 @@ class CrearCursoView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Crear el curso
-            curso = Curso.objects.create(
+            # ✅ CORRECCIÓN: Crear el curso y FORZAR la generación del código
+            curso = Curso(
                 nombre=nombre,
                 descripcion=descripcion
             )
             
-            # Asignar el profesor al curso
+            # ✅ FORZAR la generación del código si no existe
+            if not curso.codigo_acceso:
+                import random
+                import string
+                curso.codigo_acceso = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            
+            # ✅ GUARDAR el curso primero
+            curso.save()
+            
+            # ✅ LUEGO crear la relación con el profesor
             ProfesorCurso.objects.create(
                 curso=curso,
                 profesor=profesor,
                 rol='Titular'
             )
+            
+            # ✅ VERIFICAR que el código se generó
+            print(f"🔑 Código generado: {curso.codigo_acceso}")
             
             return Response({
                 'message': 'Curso creado exitosamente',
@@ -776,10 +789,12 @@ class CrearCursoView(APIView):
                     'id': curso.id,
                     'nombre': curso.nombre,
                     'descripcion': curso.descripcion,
-                    'codigo': codigo or f"{curso.nombre[:3].upper()}001",
+                    'codigo_acceso': curso.codigo_acceso,  # ✅ ESTO DEBERÍA FUNCIONAR AHORA
+                    'codigo': f"{curso.nombre[:3].upper()}001",
                     'cantidad_alumnos': 0,
                     'cantidad_examenes': 0,
-                    'estado': 'activo'
+                    'estado': 'activo',
+                    'profesor_titular': 'Titular'
                 }
             }, status=status.HTTP_201_CREATED)
             
@@ -787,6 +802,12 @@ class CrearCursoView(APIView):
             return Response(
                 {'error': 'Usuario no es un profesor'}, 
                 status=status.HTTP_403_FORBIDDEN
+            )
+        except Exception as e:
+            print(f"❌ Error creando curso: {str(e)}")
+            return Response(
+                {'error': f'Error interno: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 class ExamenesDocenteView(APIView):
@@ -922,6 +943,74 @@ class CrearExamenView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+class ValidarCodigoView(APIView):
+    permission_classes = []  # Permitir acceso sin autenticación inicial
+    
+    def post(self, request):
+        try:
+            codigo = request.data.get('codigo', '').strip().upper()
+            
+            if not codigo:
+                return Response(
+                    {'error': 'El código es requerido'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Buscar curso por código
+            try:
+                curso = Curso.objects.get(codigo_acceso=codigo)  # ✅ AHORA SÍ FUNCIONA
+            except Curso.DoesNotExist:
+                return Response(
+                    {'error': 'Código inválido. Verificá el código e intentá nuevamente.'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Obtener alumno autenticado
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'Debes iniciar sesión para unirte al curso'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
+            try:
+                alumno = Alumno.objects.get(usuario=request.user)
+            except Alumno.DoesNotExist:
+                return Response(
+                    {'error': 'Usuario no es un alumno'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Verificar si ya está inscrito
+            if Inscripcion.objects.filter(alumno=alumno, curso=curso).exists():
+                return Response(
+                    {'error': 'Ya estás inscrito en este curso'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Crear inscripción
+            inscripcion = Inscripcion.objects.create(
+                alumno=alumno,
+                curso=curso,
+                fecha_inscripcion=timezone.now().date()
+            )
+            
+            return Response({
+                'success': True,
+                'message': f'¡Te has unido exitosamente a {curso.nombre}!',
+                'curso': {
+                    'id': curso.id,
+                    'nombre': curso.nombre,
+                    'descripcion': curso.descripcion
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"❌ Error validando código: {str(e)}")
+            return Response(
+                {'error': 'Error interno del servidor'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 # ====== VIEWSETS EXISTENTES ======
 

@@ -22,4 +22,5 @@ export const alumnoRoutes: Routes = [
   { path: 'envio/:id', component: Envio },
   { path: 'resultado/:id', component: Resultado },
   { path: 'retroalimentacion/:id', component: Retroalimentacion },
+
 ];
